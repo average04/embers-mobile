@@ -2,6 +2,7 @@ import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import MapView, { Marker, type Region } from 'react-native-maps'
 import Supercluster from 'supercluster'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMapStore } from '@/store/mapStore'
 import { useMapEmbers } from '@/hooks/useMapEmbers'
 import { EmberMarkerView } from '@/components/map/EmberMarker'
@@ -10,6 +11,7 @@ import { ClusterMarkerView } from '@/components/map/ClusterMarker'
 import { EmberDetailSheet } from '@/components/ember/EmberDetailSheet'
 import { BlueEmberDetailSheet } from '@/components/ember/BlueEmberDetailSheet'
 import { LocationSearch } from '@/components/map/LocationSearch'
+import { supabase } from '@/lib/supabase/client'
 
 type GeoFeature = {
   type: 'Feature'
@@ -36,6 +38,39 @@ export default function MapScreen() {
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>()
 
   const { embers, blueEmbers, isLoading } = useMapEmbers(queryRegion)
+
+  const queryClient = useQueryClient()
+
+  // Realtime subscription: invalidate map query when embers or blue_embers change in viewport
+  useEffect(() => {
+    function isInViewport(lat: number, lng: number) {
+      const south = queryRegion.latitude - queryRegion.latitudeDelta / 2
+      const north = queryRegion.latitude + queryRegion.latitudeDelta / 2
+      const west = queryRegion.longitude - queryRegion.longitudeDelta / 2
+      const east = queryRegion.longitude + queryRegion.longitudeDelta / 2
+      return lat >= south && lat <= north && lng >= west && lng <= east
+    }
+
+    function invalidate() {
+      queryClient.invalidateQueries({ queryKey: ['mapEmbers'] })
+    }
+
+    const channel = supabase
+      .channel('map-embers-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'embers' }, (payload) => {
+        const { lat, lng } = payload.new as { lat: number; lng: number }
+        if (isInViewport(lat, lng)) invalidate()
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'embers' }, invalidate)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'blue_embers' }, (payload) => {
+        const { lat, lng } = payload.new as { lat: number; lng: number }
+        if (isInViewport(lat, lng)) invalidate()
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'blue_embers' }, invalidate)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [queryRegion, queryClient])
 
   const features = useMemo<GeoFeature[]>(() => [
     ...embers.map((e) => ({
