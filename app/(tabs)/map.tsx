@@ -131,7 +131,7 @@ export default function MapScreen() {
         onMessage={handleMessage}
         javaScriptEnabled
         domStorageEnabled
-        originWhitelist={['about:*']}
+        originWhitelist={['*']}
         allowsInlineMediaPlayback
       />
 
