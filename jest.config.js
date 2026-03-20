@@ -6,6 +6,8 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^expo/src/winter$': '<rootDir>/__mocks__/expo-winter.js',
+    '^expo/src/winter/(.*)$': '<rootDir>/__mocks__/expo-winter-module.js',
   },
   collectCoverageFrom: [
     'store/**/*.ts',
