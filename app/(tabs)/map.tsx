@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import * as Location from 'expo-location'
@@ -11,14 +11,8 @@ import { LocationSearch } from '@/components/map/LocationSearch'
 import { supabase } from '@/lib/supabase/client'
 import { buildMapHtml } from '@/lib/leafletMap'
 
-const DEFAULT_REGION: Region = {
-  latitude: 14.5995,
-  longitude: 120.9842,
-  latitudeDelta: 0.09,
-  longitudeDelta: 0.09,
-}
-
-const MAP_HTML = buildMapHtml(DEFAULT_REGION.latitude, DEFAULT_REGION.longitude, 11)
+const DEFAULT_ZOOM = 11
+const MAP_HTML = buildMapHtml(14.5995, 120.9842, DEFAULT_ZOOM)
 
 export default function MapScreen() {
   const { region, setRegion, selectedEmberId, selectedEmberType, setSelectedEmber } = useMapStore()
@@ -114,12 +108,12 @@ export default function MapScreen() {
     }
   }, [setSelectedEmber, setRegion])
 
-  function handleDismiss() {
+  const handleDismiss = useCallback(() => {
     setSelectedEmber(null, null)
-  }
+  }, [setSelectedEmber])
 
-  const embersById = new Map(embers.map((e) => [e.id, e]))
-  const blueEmbersById = new Map(blueEmbers.map((b) => [b.id, b]))
+  const embersById = useMemo(() => new Map(embers.map((e) => [e.id, e])), [embers])
+  const blueEmbersById = useMemo(() => new Map(blueEmbers.map((b) => [b.id, b])), [blueEmbers])
 
   const selectedEmber = selectedEmberId && selectedEmberType === 'orange'
     ? embersById.get(selectedEmberId) ?? null
@@ -137,7 +131,7 @@ export default function MapScreen() {
         onMessage={handleMessage}
         javaScriptEnabled
         domStorageEnabled
-        originWhitelist={['*']}
+        originWhitelist={['about:*']}
         allowsInlineMediaPlayback
       />
 

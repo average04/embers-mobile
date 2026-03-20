@@ -100,11 +100,12 @@ export function buildMapHtml(lat: number, lng: number, zoom: number): string {
     });
   });
 
-  document.addEventListener('DOMContentLoaded', function() {
-    postToRN({ type: 'MAP_READY' });
-  });
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(function() { postToRN({ type: 'MAP_READY' }); }, 0);
+    postToRN({ type: 'MAP_READY' });
+  } else {
+    document.addEventListener('DOMContentLoaded', function() {
+      postToRN({ type: 'MAP_READY' });
+    });
   }
 </script>
 </body>
