@@ -1,5 +1,11 @@
 import { create } from 'zustand'
-import type { Region } from 'react-native-maps'
+
+export interface Region {
+  latitude: number
+  longitude: number
+  latitudeDelta: number
+  longitudeDelta: number
+}
 
 const DEFAULT_REGION: Region = {
   latitude: 14.5995,
