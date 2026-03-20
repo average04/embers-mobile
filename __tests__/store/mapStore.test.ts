@@ -10,7 +10,7 @@ const DEFAULT_REGION = {
 
 describe('mapStore', () => {
   beforeEach(() => {
-    useMapStore.setState({ region: DEFAULT_REGION, selectedEmberId: null })
+    useMapStore.setState({ region: DEFAULT_REGION, selectedEmberId: null, selectedEmberType: null })
   })
 
   it('starts with default region and no selected ember', () => {
@@ -37,5 +37,25 @@ describe('mapStore', () => {
     act(() => result.current.setSelectedEmberId('ember-123'))
     act(() => result.current.setSelectedEmberId(null))
     expect(result.current.selectedEmberId).toBeNull()
+  })
+
+  it('starts with no selectedEmberType', () => {
+    const { result } = renderHook(() => useMapStore())
+    expect(result.current.selectedEmberType).toBeNull()
+  })
+
+  it('setSelectedEmber sets id and type together', () => {
+    const { result } = renderHook(() => useMapStore())
+    act(() => result.current.setSelectedEmber('ember-abc', 'orange'))
+    expect(result.current.selectedEmberId).toBe('ember-abc')
+    expect(result.current.selectedEmberType).toBe('orange')
+  })
+
+  it('setSelectedEmber with null clears both id and type', () => {
+    const { result } = renderHook(() => useMapStore())
+    act(() => result.current.setSelectedEmber('ember-abc', 'orange'))
+    act(() => result.current.setSelectedEmber(null, null))
+    expect(result.current.selectedEmberId).toBeNull()
+    expect(result.current.selectedEmberType).toBeNull()
   })
 })

@@ -8,7 +8,14 @@ global.fetch = jest.fn()
 describe('LocationSearch', () => {
   const mockOnSelect = jest.fn()
 
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
 
   it('renders search input', () => {
     const { getByPlaceholderText } = render(<LocationSearch onSelect={mockOnSelect} />)
@@ -25,9 +32,11 @@ describe('LocationSearch', () => {
     })
 
     const { getByPlaceholderText } = render(<LocationSearch onSelect={mockOnSelect} />)
+    fireEvent.changeText(getByPlaceholderText('Search location...'), 'Manila')
+
+    // Advance past the 500ms debounce
     await act(async () => {
-      fireEvent.changeText(getByPlaceholderText('Search location...'), 'Manila')
-      await new Promise((r) => setTimeout(r, 600))
+      jest.advanceTimersByTime(600)
     })
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -46,9 +55,10 @@ describe('LocationSearch', () => {
     })
 
     const { getByPlaceholderText, findByText } = render(<LocationSearch onSelect={mockOnSelect} />)
+    fireEvent.changeText(getByPlaceholderText('Search location...'), 'Manila')
+
     await act(async () => {
-      fireEvent.changeText(getByPlaceholderText('Search location...'), 'Manila')
-      await new Promise((r) => setTimeout(r, 600))
+      jest.advanceTimersByTime(600)
     })
 
     const result = await findByText('Manila, Philippines')
