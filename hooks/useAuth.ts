@@ -1,8 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
-import { useAuthStore } from '@/store/authStore'
 
 export function useAuth() {
-  const { clear } = useAuthStore()
 
   async function signIn(email: string, password: string): Promise<{ error: string | null }> {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
