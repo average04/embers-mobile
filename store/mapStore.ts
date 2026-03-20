@@ -1,11 +1,5 @@
 import { create } from 'zustand'
-
-interface Region {
-  latitude: number
-  longitude: number
-  latitudeDelta: number
-  longitudeDelta: number
-}
+import type { Region } from 'react-native-maps'
 
 const DEFAULT_REGION: Region = {
   latitude: 14.5995,
@@ -17,13 +11,17 @@ const DEFAULT_REGION: Region = {
 interface MapState {
   region: Region
   selectedEmberId: string | null
+  selectedEmberType: 'orange' | 'blue' | null
   setRegion: (region: Region) => void
   setSelectedEmberId: (id: string | null) => void
+  setSelectedEmber: (id: string | null, type: 'orange' | 'blue' | null) => void
 }
 
 export const useMapStore = create<MapState>((set) => ({
   region: DEFAULT_REGION,
   selectedEmberId: null,
+  selectedEmberType: null,
   setRegion: (region) => set({ region }),
   setSelectedEmberId: (selectedEmberId) => set({ selectedEmberId }),
+  setSelectedEmber: (id, type) => set({ selectedEmberId: id, selectedEmberType: type }),
 }))
