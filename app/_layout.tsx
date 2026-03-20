@@ -37,7 +37,7 @@ export default function RootLayout() {
       }
     )
     return () => subscription.unsubscribe()
-  }, [])
+  }, [setSession, setProfile, clear])
 
   useEffect(() => {
     if (!initialized) return

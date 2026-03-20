@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native'
 import { useNotifStore } from '@/store/notifStore'
 export default function NotificationsScreen() {
   const reset = useNotifStore((s) => s.reset)
-  useEffect(() => { reset() }, [])
+  useEffect(() => { reset() }, [reset])
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Notifications</Text>

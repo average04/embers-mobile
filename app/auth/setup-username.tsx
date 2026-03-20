@@ -19,7 +19,18 @@ export default function SetupUsernameScreen() {
     if (!username.trim()) { setError('Username is required'); return false }
     if (username.length < MIN_USERNAME_LENGTH) { setError(`Username must be at least ${MIN_USERNAME_LENGTH} characters`); return false }
     if (username.length > MAX_USERNAME_LENGTH) { setError(`Username must be ${MAX_USERNAME_LENGTH} characters or less`); return false }
-    if (!USERNAME_REGEX.test(username)) { setError('Username can only contain letters, numbers, underscores and periods'); return false }
+    if (!USERNAME_REGEX.test(username)) {
+      setError('Username can only contain letters, numbers, underscores and periods')
+      return false
+    }
+    if (username.startsWith('.') || username.endsWith('.')) {
+      setError('Username cannot start or end with a period')
+      return false
+    }
+    if (username.includes('..')) {
+      setError('Username cannot contain consecutive periods')
+      return false
+    }
     setError(null)
     return true
   }

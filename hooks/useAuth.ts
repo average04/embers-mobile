@@ -16,7 +16,7 @@ export function useAuth() {
 
   async function signOut(): Promise<void> {
     await supabase.auth.signOut()
-    clear()
+    // clear() is handled by onAuthStateChange in _layout.tsx
   }
 
   async function sendMagicLink(email: string): Promise<{ error: string | null }> {
