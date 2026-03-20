@@ -46,7 +46,7 @@ function isActive(createdAt: string, relitAt: string | null, expiryMs: number): 
   return Date.now() - lastActive < expiryMs
 }
 
-async function fetchMapEmbers(region: Region) {
+async function fetchMapEmbers(region: Region): Promise<{ embers: MapEmber[]; blueEmbers: MapBlueEmber[] }> {
   const south = region.latitude - region.latitudeDelta / 2
   const north = region.latitude + region.latitudeDelta / 2
   const west = region.longitude - region.longitudeDelta / 2
@@ -87,6 +87,7 @@ export function useMapEmbers(region: Region) {
       Math.round(region.latitude * 1000) / 1000,
       Math.round(region.longitude * 1000) / 1000,
       Math.round(region.latitudeDelta * 1000) / 1000,
+      Math.round(region.longitudeDelta * 1000) / 1000,
     ],
     queryFn: () => fetchMapEmbers(region),
     staleTime: 30_000,

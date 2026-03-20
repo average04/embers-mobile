@@ -7,11 +7,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 jest.mock('@/lib/supabase/client', () => ({
   supabase: {
     from: jest.fn(),
-    channel: jest.fn().mockReturnValue({
-      on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn(),
-    }),
-    removeChannel: jest.fn(),
   },
 }))
 
@@ -62,20 +57,15 @@ function makeFromMock(overrides: { embers?: any[]; blue_embers?: any[] } = {}) {
   const emberData = overrides.embers ?? [fakeEmber]
   const blueData = overrides.blue_embers ?? [fakeBlueEmber]
   return (table: string) => {
-    const resolvedData = { data: table === 'embers' ? emberData : blueData, error: null }
+    const data = table === 'embers' ? emberData : blueData
     const builder: any = {
       select: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
-      lte: jest.fn().mockImplementation(() => {
-        // Return a thenable that also supports further chaining
-        const promise = Promise.resolve(resolvedData)
-        const chainable: any = Object.assign(promise, {
-          gte: jest.fn().mockReturnThis(),
-          lte: jest.fn().mockImplementation(() => Promise.resolve(resolvedData)),
-          select: jest.fn().mockReturnThis(),
-        })
-        return chainable
-      }),
+      lte: jest.fn().mockReturnThis(),
+      then: (resolve: (value: any) => void) => {
+        resolve({ data, error: null })
+        return Promise.resolve({ data, error: null })
+      },
     }
     return builder
   }
@@ -121,5 +111,18 @@ describe('useMapEmbers', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.blueEmbers).toHaveLength(0)
     expect(result.current.embers).toHaveLength(1)
+  })
+
+  it('keeps ember that was relit recently even if created_at is old', async () => {
+    const oldDate = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString()
+    const recentRelit = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    const relitEmber = { ...fakeEmber, created_at: oldDate, relit_at: recentRelit }
+    ;(supabase.from as jest.Mock).mockImplementation(
+      makeFromMock({ embers: [relitEmber], blue_embers: [] })
+    )
+
+    const { result } = renderHook(() => useMapEmbers(mockRegion), { wrapper })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.embers).toHaveLength(1) // relit recently, so still active
   })
 })
