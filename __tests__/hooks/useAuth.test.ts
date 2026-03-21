@@ -7,7 +7,7 @@ jest.mock('@/lib/supabase/client', () => ({
       signInWithPassword: jest.fn(),
       signUp: jest.fn(),
       signOut: jest.fn(),
-      signInWithOtp: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
     },
   },
 }))
@@ -54,11 +54,46 @@ describe('useAuth', () => {
     expect(supabase.auth.signOut).toHaveBeenCalled()
   })
 
-  it('sendMagicLink calls signInWithOtp', async () => {
-    ;(supabase.auth.signInWithOtp as jest.Mock).mockResolvedValueOnce({ error: null })
+})
+
+describe('resetPassword', () => {
+  it('calls supabase resetPasswordForEmail with the email', async () => {
+    const mockResetPassword = jest.fn().mockResolvedValue({ error: null })
+    ;(supabase.auth.resetPasswordForEmail as jest.Mock) = mockResetPassword
+
     const { result } = renderHook(() => useAuth())
-    const { error } = await act(() => result.current.sendMagicLink('test@test.com'))
-    expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({ email: 'test@test.com' })
-    expect(error).toBeNull()
+    await act(async () => {
+      await result.current.resetPassword('test@example.com')
+    })
+
+    expect(mockResetPassword).toHaveBeenCalledWith('test@example.com')
+  })
+
+  it('returns error message when resetPasswordForEmail fails', async () => {
+    ;(supabase.auth.resetPasswordForEmail as jest.Mock) = jest.fn().mockResolvedValue({
+      error: { message: 'Email not found' },
+    })
+
+    const { result } = renderHook(() => useAuth())
+    let response: { error: string | null }
+    await act(async () => {
+      response = await result.current.resetPassword('unknown@example.com')
+    })
+
+    expect(response!.error).toBe('Email not found')
+  })
+
+  it('returns null error on success', async () => {
+    ;(supabase.auth.resetPasswordForEmail as jest.Mock) = jest.fn().mockResolvedValue({
+      error: null,
+    })
+
+    const { result } = renderHook(() => useAuth())
+    let response: { error: string | null }
+    await act(async () => {
+      response = await result.current.resetPassword('test@example.com')
+    })
+
+    expect(response!.error).toBeNull()
   })
 })

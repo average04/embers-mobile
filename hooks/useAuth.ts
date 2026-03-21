@@ -17,10 +17,10 @@ export function useAuth() {
     // clear() is handled by onAuthStateChange in _layout.tsx
   }
 
-  async function sendMagicLink(email: string): Promise<{ error: string | null }> {
-    const { error } = await supabase.auth.signInWithOtp({ email })
+  async function resetPassword(email: string): Promise<{ error: string | null }> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email)
     return { error: error?.message ?? null }
   }
 
-  return { signIn, signUp, signOut, sendMagicLink }
+  return { signIn, signUp, signOut, resetPassword }
 }
