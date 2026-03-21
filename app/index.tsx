@@ -16,6 +16,8 @@ export default function WelcomeScreen() {
   useEffect(() => {
     if (session && profile?.username) {
       router.replace('/(drawer)/map')
+    } else if (session && !profile?.username) {
+      router.replace('/auth/setup-username')
     }
   }, [session, profile])
 

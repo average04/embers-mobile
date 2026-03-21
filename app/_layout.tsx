@@ -18,7 +18,7 @@ export default function RootLayout() {
   const [initialized, setInitialized] = useState(false)
   const { setSession, setProfile, clear } = useAuthStore()
 
-  useFonts({
+  const [fontsLoaded] = useFonts({
     CormorantGaramond_300Light,
     CormorantGaramond_300Light_Italic,
   })
