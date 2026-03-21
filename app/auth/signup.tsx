@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
@@ -33,36 +34,33 @@ export default function SignupScreen() {
     if (error) {
       Alert.alert('Signup failed', error)
     } else {
-      Alert.alert('Check your email', 'A confirmation email has been sent. Click the link to verify your account.', [{ text: 'OK', onPress: () => router.replace('/auth/login') }])
+      Alert.alert(
+        'Check your email',
+        'A confirmation email has been sent. Click the link to verify your account.',
+        [{ text: 'OK', onPress: () => router.replace('/auth/login') }]
+      )
     }
   }
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={styles.logo}>embers</Text>
-        <Text style={styles.heading}>Create account</Text>
-        <View style={styles.form}>
-          <Input label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" error={errors.email} />
-          <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" error={errors.password} />
-          <Input label="Confirm password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry error={errors.confirm} />
-          <Button label="Create account" onPress={handleSignUp} loading={loading} />
-        </View>
-        <TouchableOpacity onPress={() => router.back()} style={styles.switchLink}>
-          <Text style={styles.switchText}>Already have an account? <Text style={styles.switchAction}>Sign in</Text></Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <AuthLayout>
+      <Input label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" error={errors.email} />
+      <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" error={errors.password} />
+      <Input label="Confirm password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry error={errors.confirm} />
+      <Button label="Create account" onPress={handleSignUp} loading={loading} style={styles.button} />
+      <TouchableOpacity onPress={() => router.back()} style={styles.switchLink}>
+        <Text style={styles.switchText}>
+          Already have an account?{' '}
+          <Text style={styles.switchAction}>Sign in</Text>
+        </Text>
+      </TouchableOpacity>
+    </AuthLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0f1117' },
-  container: { flexGrow: 1, padding: 24, justifyContent: 'center' },
-  logo: { fontSize: 42, fontWeight: '800', color: '#e94560', textAlign: 'center', marginBottom: 4 },
-  heading: { fontSize: 20, color: '#a0aec0', textAlign: 'center', marginBottom: 48 },
-  form: { gap: 0 },
-  switchLink: { marginTop: 32, alignItems: 'center' },
-  switchText: { color: '#718096', fontSize: 14 },
-  switchAction: { color: '#e94560', fontWeight: '600' },
+  button: { marginTop: 8 },
+  switchLink: { alignItems: 'center', marginTop: 20 },
+  switchText: { fontSize: 11, color: '#3a3a4a' },
+  switchAction: { color: '#e94560' },
 })

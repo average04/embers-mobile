@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native'
+import { View, Text, StyleSheet, Alert } from 'react-native'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { supabase } from '@/lib/supabase/client'
@@ -17,20 +18,11 @@ export default function SetupUsernameScreen() {
 
   function validate(): boolean {
     if (!username.trim()) { setError('Username is required'); return false }
-    if (username.length < MIN_USERNAME_LENGTH) { setError(`Username must be at least ${MIN_USERNAME_LENGTH} characters`); return false }
-    if (username.length > MAX_USERNAME_LENGTH) { setError(`Username must be ${MAX_USERNAME_LENGTH} characters or less`); return false }
-    if (!USERNAME_REGEX.test(username)) {
-      setError('Username can only contain letters, numbers, underscores and periods')
-      return false
-    }
-    if (username.startsWith('.') || username.endsWith('.')) {
-      setError('Username cannot start or end with a period')
-      return false
-    }
-    if (username.includes('..')) {
-      setError('Username cannot contain consecutive periods')
-      return false
-    }
+    if (username.length < MIN_USERNAME_LENGTH) { setError(`At least ${MIN_USERNAME_LENGTH} characters`); return false }
+    if (username.length > MAX_USERNAME_LENGTH) { setError(`Max ${MAX_USERNAME_LENGTH} characters`); return false }
+    if (!USERNAME_REGEX.test(username)) { setError('Letters, numbers, underscores and periods only'); return false }
+    if (username.startsWith('.') || username.endsWith('.')) { setError('Cannot start or end with a period'); return false }
+    if (username.includes('..')) { setError('Cannot contain consecutive periods'); return false }
     setError(null)
     return true
   }
@@ -69,22 +61,25 @@ export default function SetupUsernameScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.container}>
-        <Text style={styles.logo}>embers</Text>
-        <Text style={styles.heading}>Choose a username</Text>
-        <Text style={styles.subheading}>This is how others will see you on the map.</Text>
-        <Input label="Username" value={username} onChangeText={(text) => { setUsername(text); setError(null) }} autoCapitalize="none" autoCorrect={false} error={error ?? undefined} placeholder="e.g. jayrb" />
-        <Button label="Save username" onPress={handleSave} loading={loading} />
-      </View>
-    </KeyboardAvoidingView>
+    <AuthLayout>
+      <Text style={styles.heading}>Choose your username</Text>
+      <Text style={styles.subtext}>How others will see you on the map</Text>
+      <Input
+        label="Username"
+        value={username}
+        onChangeText={(text) => { setUsername(text); setError(null) }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        error={error ?? undefined}
+        placeholder="e.g. jayrb"
+      />
+      <Button label="Save username" onPress={handleSave} loading={loading} style={styles.button} />
+    </AuthLayout>
   )
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0f1117' },
-  container: { flex: 1, padding: 24, justifyContent: 'center' },
-  logo: { fontSize: 42, fontWeight: '800', color: '#e94560', textAlign: 'center', marginBottom: 4 },
-  heading: { fontSize: 24, color: '#f7fafc', textAlign: 'center', marginBottom: 8, fontWeight: '700' },
-  subheading: { fontSize: 14, color: '#718096', textAlign: 'center', marginBottom: 40 },
+  heading: { fontSize: 15, fontWeight: '600', color: '#ffffff', marginBottom: 4 },
+  subtext: { fontSize: 12, color: '#3a3a4a', marginBottom: 16 },
+  button: { marginTop: 8 },
 })
