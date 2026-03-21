@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Slot, useRouter, useSegments } from 'expo-router'
-import * as SplashScreen from 'expo-splash-screen'
+import { Slot } from 'expo-router'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import {
+  useFonts,
+  CormorantGaramond_300Light,
+  CormorantGaramond_300Light_Italic,
+} from '@expo-google-fonts/cormorant-garamond'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/authStore'
 import { queryClient } from '@/lib/queryClient'
@@ -9,17 +14,21 @@ import type { Database } from '@/lib/supabase/types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
-SplashScreen.preventAutoHideAsync()
-
 export default function RootLayout() {
   const [initialized, setInitialized] = useState(false)
-  const { session, profile, setSession, setProfile, clear } = useAuthStore()
-  const router = useRouter()
-  const segments = useSegments()
+  const { setSession, setProfile, clear } = useAuthStore()
+
+  useFonts({
+    CormorantGaramond_300Light,
+    CormorantGaramond_300Light_Italic,
+  })
 
   useEffect(() => {
+    const fallback = setTimeout(() => setInitialized(true), 5000)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      async (_event, newSession) => {
+        clearTimeout(fallback)
         setSession(newSession)
 
         if (newSession) {
@@ -36,28 +45,21 @@ export default function RootLayout() {
         setInitialized(true)
       }
     )
-    return () => subscription.unsubscribe()
+
+    return () => {
+      clearTimeout(fallback)
+      subscription.unsubscribe()
+    }
   }, [setSession, setProfile, clear])
 
-  useEffect(() => {
-    if (!initialized) return
-
-    SplashScreen.hideAsync()
-
-    const inAuthGroup = segments[0] === 'auth'
-
-    if (!session) {
-      if (!inAuthGroup) router.replace('/auth/login')
-    } else if (!profile?.username) {
-      if (segments[1] !== 'setup-username') router.replace('/auth/setup-username')
-    } else if (inAuthGroup) {
-      router.replace('/(tabs)/map')
-    }
-  }, [initialized, session, profile])
+  // Don't render until we know auth state — prevents flash of guest UI for logged-in users
+  if (!initialized) return null
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Slot />
-    </QueryClientProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <Slot />
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   )
 }
