@@ -12,7 +12,7 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       <Text style={styles.username}>@{profile?.username ?? '...'}</Text>
       <Text style={styles.sub}>Profile coming in Phase 4</Text>
-      <TouchableOpacity onPress={() => router.push('/(tabs)/profile/settings')} style={styles.link}>
+      <TouchableOpacity onPress={() => router.push('/(drawer)/profile/settings')} style={styles.link}>
         <Text style={styles.linkText}>Settings →</Text>
       </TouchableOpacity>
       <Button label="Sign out" variant="secondary" onPress={signOut} style={styles.signout} />
