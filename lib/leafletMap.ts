@@ -23,10 +23,15 @@ export function buildMapHtml(lat: number, lng: number, zoom: number): string {
 <body>
 <div id="map"></div>
 <script>
-  var map = L.map('map', { zoomControl: false }).setView([${lat}, ${lng}], ${zoom});
+  var map = L.map('map', {
+    zoomControl: false,
+    attributionControl: false,
+    worldCopyJump: true,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0,
+  }).setView([${lat}, ${lng}], ${zoom});
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
   }).addTo(map);
 
@@ -57,6 +62,8 @@ export function buildMapHtml(lat: number, lng: number, zoom: number): string {
     }
   }
 
+  var initialCenterDone = false;
+
   function updateEmbers(embers, location) {
     markers.clearLayers();
 
@@ -69,8 +76,9 @@ export function buildMapHtml(lat: number, lng: number, zoom: number): string {
       markers.addLayer(m);
     });
 
-    if (location) {
+    if (location && !initialCenterDone) {
       map.setView([location.lat, location.lng], 13, { animate: true });
+      initialCenterDone = true;
     }
   }
 
