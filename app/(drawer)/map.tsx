@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { StyleSheet, View, ActivityIndicator } from 'react-native'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import * as Location from 'expo-location'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMapStore, type Region } from '@/store/mapStore'
-import { useMapEmbers } from '@/hooks/useMapEmbers'
+import { useMapEmbers, type MapEmber, type MapBlueEmber } from '@/hooks/useMapEmbers'
 import { EmberDetailSheet } from '@/components/ember/EmberDetailSheet'
 import { BlueEmberDetailSheet } from '@/components/ember/BlueEmberDetailSheet'
 import { LocationSearch } from '@/components/map/LocationSearch'
@@ -23,6 +23,35 @@ export default function MapScreen() {
 
   const { embers, blueEmbers, isLoading } = useMapEmbers(queryRegion)
   const queryClient = useQueryClient()
+
+  // Fetch full ember detail from Supabase only when a marker is tapped
+  const { data: selectedEmber } = useQuery<MapEmber | null>({
+    queryKey: ['ember', selectedEmberId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('embers')
+        .select('id, thought, lat, lng, ember_type, user_id, username, created_at, relit_at, relight_count, photo_urls')
+        .eq('id', selectedEmberId!)
+        .single()
+      return data as MapEmber | null
+    },
+    enabled: !!selectedEmberId && selectedEmberType === 'orange',
+    staleTime: 60_000,
+  })
+
+  const { data: selectedBlueEmber } = useQuery<MapBlueEmber | null>({
+    queryKey: ['blueEmber', selectedEmberId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('blue_embers')
+        .select('id, title, audio_url, audio_duration, lat, lng, user_id, username, created_at, relit_at, relight_count')
+        .eq('id', selectedEmberId!)
+        .single()
+      return data as MapBlueEmber | null
+    },
+    enabled: !!selectedEmberId && selectedEmberType === 'blue',
+    staleTime: 60_000,
+  })
 
   useEffect(() => {
     Location.requestForegroundPermissionsAsync()
@@ -112,15 +141,6 @@ export default function MapScreen() {
     setSelectedEmber(null, null)
   }, [setSelectedEmber])
 
-  const embersById = useMemo(() => new Map(embers.map((e) => [e.id, e])), [embers])
-  const blueEmbersById = useMemo(() => new Map(blueEmbers.map((b) => [b.id, b])), [blueEmbers])
-
-  const selectedEmber = selectedEmberId && selectedEmberType === 'orange'
-    ? embersById.get(selectedEmberId) ?? null
-    : null
-  const selectedBlueEmber = selectedEmberId && selectedEmberType === 'blue'
-    ? blueEmbersById.get(selectedEmberId) ?? null
-    : null
 
   return (
     <View style={styles.container}>
