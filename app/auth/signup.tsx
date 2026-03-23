@@ -54,6 +54,9 @@ export default function SignupScreen() {
           <Text style={styles.switchAction}>Sign in</Text>
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.replace('/')} style={styles.homeLink}>
+        <Text style={styles.homeText}>Home</Text>
+      </TouchableOpacity>
     </AuthLayout>
   )
 }
@@ -62,5 +65,7 @@ const styles = StyleSheet.create({
   button: { marginTop: 8 },
   switchLink: { alignItems: 'center', marginTop: 20 },
   switchText: { fontSize: 11, color: '#3a3a4a' },
-  switchAction: { color: '#e94560' },
+  switchAction: { color: '#f97316' },
+  homeLink: { alignItems: 'center', marginTop: 12 },
+  homeText: { fontSize: 11, color: '#3a3a4a' },
 })

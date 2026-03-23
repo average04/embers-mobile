@@ -52,8 +52,8 @@ export default function RootLayout() {
     }
   }, [setSession, setProfile, clear])
 
-  // Don't render until we know auth state — prevents flash of guest UI for logged-in users
-  if (!initialized) return null
+  // Don't render until auth state is known and fonts are loaded
+  if (!initialized || !fontsLoaded) return null
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

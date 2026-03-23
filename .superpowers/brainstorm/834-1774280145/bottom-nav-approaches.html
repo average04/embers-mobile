@@ -1,0 +1,184 @@
+<style>
+  body { background: #0a0a0a; font-family: 'Georgia', serif; }
+  .question { color: #f0f0f0; font-size: 18px; margin-bottom: 6px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 32px; }
+  .phones { display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; }
+  .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; cursor: pointer; }
+  .phone-wrap.selected .phone { border-color: #f97316; box-shadow: 0 0 0 2px #f97316; }
+  .phone-wrap.selected .label { color: #f97316; }
+  .phone {
+    width: 200px; height: 380px; background: #111; border-radius: 32px;
+    border: 2px solid #2a2a2a; overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  .map-bg { flex: 1; background: #1a2332; position: relative; overflow: hidden; }
+  .map-tile {
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, #1e2a3a 0px, #1e2a3a 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, #1e2a3a 0px, #1e2a3a 1px, transparent 1px, transparent 40px);
+  }
+  .map-dot {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    background: #f97316; box-shadow: 0 0 6px #f97316;
+  }
+  .embers-logo {
+    position: absolute; top: 14px; left: 14px;
+    font-family: Georgia, serif; font-size: 16px; font-weight: 300; color: #f0f0f0;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+  }
+  .profile-pill {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.6); border: 1px solid #2a2a2a;
+    border-radius: 20px; padding: 4px 10px 4px 4px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .avatar { width: 18px; height: 18px; border-radius: 9px; background: #2a2a2a; border: 1px solid #444; }
+  .profile-text { font-size: 9px; color: #aaa; }
+
+  /* Option A — pill bar */
+  .nav-a {
+    height: 60px; background: rgba(10,10,10,0.95); border-top: 1px solid #1a1a1a;
+    display: flex; align-items: center; justify-content: space-around; padding: 0 8px;
+  }
+  .nav-a .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+  .nav-a .tab-icon { font-size: 16px; }
+  .nav-a .tab-label { font-size: 8px; letter-spacing: 0.5px; color: #555; }
+  .nav-a .tab.active .tab-label { color: #f97316; }
+  .nav-a .tab.active .tab-icon { filter: brightness(1.5); }
+  .nav-a .active-pill {
+    position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%);
+    width: 28px; height: 3px; background: #f97316; border-radius: 2px;
+  }
+
+  /* Option B — floating pill */
+  .nav-b-wrap { position: relative; }
+  .nav-b {
+    height: 64px; background: transparent;
+    display: flex; align-items: center; justify-content: center; padding: 8px 16px 12px;
+  }
+  .nav-b-inner {
+    background: rgba(15,15,15,0.95); border: 1px solid #222;
+    border-radius: 40px; display: flex; align-items: center; gap: 0;
+    padding: 0 8px; height: 44px;
+  }
+  .nav-b .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 14px; }
+  .nav-b .tab-icon { font-size: 14px; }
+  .nav-b .tab-label { font-size: 7px; letter-spacing: 0.5px; color: #555; }
+  .nav-b .tab.active .tab-label { color: #f97316; }
+  .nav-b .tab.active .tab-icon { filter: drop-shadow(0 0 3px #f97316); }
+
+  /* Option C — icons only, minimal */
+  .nav-c {
+    height: 56px; background: rgba(8,8,8,0.97); border-top: 1px solid #141414;
+    display: flex; align-items: center; justify-content: space-around;
+  }
+  .nav-c .tab { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .nav-c .tab-icon { font-size: 18px; }
+  .nav-c .tab-dot { width: 4px; height: 4px; border-radius: 2px; background: transparent; }
+  .nav-c .tab.active .tab-dot { background: #f97316; }
+
+  .label { font-size: 13px; color: #888; font-weight: 500; }
+  .label-desc { font-size: 11px; color: #444; text-align: center; max-width: 180px; }
+</style>
+
+<p class="question">Which bottom nav style fits Embers?</p>
+<p class="sub">All three use Map · Feed · Boards. Click to select.</p>
+
+<div class="phones">
+
+  <!-- Option A: Standard bar with orange underline -->
+  <div class="phone-wrap" data-choice="a" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="map-bg">
+        <div class="map-tile"></div>
+        <div class="map-dot" style="top:35%;left:40%"></div>
+        <div class="map-dot" style="top:55%;left:60%;background:#60a5fa;box-shadow:0 0 6px #60a5fa"></div>
+        <div class="map-dot" style="top:45%;left:25%"></div>
+        <div class="embers-logo">Embers</div>
+        <div class="profile-pill"><div class="avatar"></div><span class="profile-text">@user</span></div>
+      </div>
+      <div class="nav-a" style="position:relative">
+        <div class="tab active">
+          <span class="tab-icon">🗺</span>
+          <span class="tab-label" style="color:#f97316">Map</span>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">📋</span>
+          <span class="tab-label">Feed</span>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">📌</span>
+          <span class="tab-label">Boards</span>
+        </div>
+        <div class="active-pill"></div>
+      </div>
+    </div>
+    <div class="label">A — Standard Bar</div>
+    <div class="label-desc">Full-width dark bar, orange indicator line</div>
+  </div>
+
+  <!-- Option B: Floating pill -->
+  <div class="phone-wrap" data-choice="b" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="map-bg">
+        <div class="map-tile"></div>
+        <div class="map-dot" style="top:35%;left:40%"></div>
+        <div class="map-dot" style="top:55%;left:60%;background:#60a5fa;box-shadow:0 0 6px #60a5fa"></div>
+        <div class="map-dot" style="top:45%;left:25%"></div>
+        <div class="embers-logo">Embers</div>
+        <div class="profile-pill"><div class="avatar"></div><span class="profile-text">@user</span></div>
+      </div>
+      <div class="nav-b">
+        <div class="nav-b-inner">
+          <div class="tab active" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 14px">
+            <span class="tab-icon" style="font-size:14px;filter:drop-shadow(0 0 3px #f97316)">🗺</span>
+            <span class="tab-label" style="font-size:7px;letter-spacing:0.5px;color:#f97316">Map</span>
+          </div>
+          <div style="width:1px;height:20px;background:#222"></div>
+          <div class="tab" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 14px">
+            <span class="tab-icon" style="font-size:14px">📋</span>
+            <span class="tab-label" style="font-size:7px;letter-spacing:0.5px;color:#555">Feed</span>
+          </div>
+          <div style="width:1px;height:20px;background:#222"></div>
+          <div class="tab" style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 14px">
+            <span class="tab-icon" style="font-size:14px">📌</span>
+            <span class="tab-label" style="font-size:7px;letter-spacing:0.5px;color:#555">Boards</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="label">B — Floating Pill</div>
+    <div class="label-desc">Pill floats above edge, map bleeds underneath</div>
+  </div>
+
+  <!-- Option C: Icon-only minimal -->
+  <div class="phone-wrap" data-choice="c" onclick="toggleSelect(this)">
+    <div class="phone">
+      <div class="map-bg">
+        <div class="map-tile"></div>
+        <div class="map-dot" style="top:35%;left:40%"></div>
+        <div class="map-dot" style="top:55%;left:60%;background:#60a5fa;box-shadow:0 0 6px #60a5fa"></div>
+        <div class="map-dot" style="top:45%;left:25%"></div>
+        <div class="embers-logo">Embers</div>
+        <div class="profile-pill"><div class="avatar"></div><span class="profile-text">@user</span></div>
+      </div>
+      <div class="nav-c">
+        <div class="tab active">
+          <span class="tab-icon">🗺</span>
+          <div class="tab-dot" style="background:#f97316"></div>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">📋</span>
+          <div class="tab-dot"></div>
+        </div>
+        <div class="tab">
+          <span class="tab-icon">📌</span>
+          <div class="tab-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="label">C — Icon Only</div>
+    <div class="label-desc">Minimal icons, orange dot for active state</div>
+  </div>
+
+</div>

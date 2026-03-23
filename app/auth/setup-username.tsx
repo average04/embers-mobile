@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, StyleSheet, Alert } from 'react-native'
+import { Text, TouchableOpacity, StyleSheet, Alert } from 'react-native'
+import { useRouter } from 'expo-router'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -11,6 +12,7 @@ import type { Database } from '@/lib/supabase/types'
 type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function SetupUsernameScreen() {
+  const router = useRouter()
   const { session, setProfile } = useAuthStore()
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
@@ -74,6 +76,9 @@ export default function SetupUsernameScreen() {
         placeholder="e.g. jayrb"
       />
       <Button label="Save username" onPress={handleSave} loading={loading} style={styles.button} />
+      <TouchableOpacity onPress={() => router.replace('/')} style={styles.homeLink}>
+        <Text style={styles.homeText}>Home</Text>
+      </TouchableOpacity>
     </AuthLayout>
   )
 }
@@ -82,4 +87,6 @@ const styles = StyleSheet.create({
   heading: { fontSize: 15, fontWeight: '600', color: '#ffffff', marginBottom: 4 },
   subtext: { fontSize: 12, color: '#3a3a4a', marginBottom: 16 },
   button: { marginTop: 8 },
+  homeLink: { alignItems: 'center', marginTop: 20 },
+  homeText: { fontSize: 11, color: '#3a3a4a' },
 })

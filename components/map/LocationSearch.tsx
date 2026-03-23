@@ -82,7 +82,7 @@ export function LocationSearch({ onSelect }: LocationSearchProps) {
           autoCorrect={false}
           autoCapitalize="none"
         />
-        {loading && <ActivityIndicator size="small" color="#e94560" style={styles.spinner} />}
+        {loading && <ActivityIndicator size="small" color="#f97316" style={styles.spinner} />}
       </View>
       {results.length > 0 && (
         <FlatList

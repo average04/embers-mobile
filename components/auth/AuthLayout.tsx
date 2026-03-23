@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   rule: {
     width: 28,
     height: 1,
-    backgroundColor: '#e94560',
+    backgroundColor: '#f97316',
     opacity: 0.5,
     marginTop: 16,
   },

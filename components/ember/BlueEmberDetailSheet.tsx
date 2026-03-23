@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
 } from 'react-native'
 import { AudioPlayer } from '@/components/audio/AudioPlayer'
 import { daysRemaining } from '@/lib/emberUtils'
@@ -23,22 +22,20 @@ export function BlueEmberDetailSheet({ blueEmber, onDismiss }: BlueEmberDetailSh
     <Modal
       visible
       transparent
-      animationType="slide"
+      animationType="fade"
       onRequestClose={onDismiss}
     >
       <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onDismiss} />
-      <SafeAreaView style={styles.sheetWrapper}>
-        <View style={styles.sheet}>
-          {/* Handle bar */}
-          <View style={styles.handle} />
 
+      <View style={styles.centeredWrapper} pointerEvents="box-none">
+        <View style={styles.card}>
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.typeBadge}>
               <Text style={styles.typeEmoji}>🎙️</Text>
               <Text style={styles.typeLabel}>Audio Ember</Text>
             </View>
-            <TouchableOpacity onPress={onDismiss}>
+            <TouchableOpacity onPress={onDismiss} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Text style={styles.closeBtn}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -62,7 +59,7 @@ export function BlueEmberDetailSheet({ blueEmber, onDismiss }: BlueEmberDetailSh
             </Text>
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   )
 }
@@ -70,29 +67,23 @@ export function BlueEmberDetailSheet({ blueEmber, onDismiss }: BlueEmberDetailSh
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
-  sheetWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  centeredWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
-  sheet: {
-    backgroundColor: '#0f1117',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 12,
+  card: {
+    width: '100%',
+    backgroundColor: '#111111',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1f1f1f',
+    paddingTop: 20,
     paddingHorizontal: 20,
-    paddingBottom: 32,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#2d3748',
-    alignSelf: 'center',
-    marginBottom: 16,
+    paddingBottom: 24,
   },
   header: {
     flexDirection: 'row',
@@ -103,18 +94,18 @@ const styles = StyleSheet.create({
   typeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#0d1a2e',
     borderRadius: 12,
     paddingHorizontal: 10,
     paddingVertical: 4,
     gap: 4,
   },
-  typeEmoji: { fontSize: 14 },
-  typeLabel: { fontSize: 13, color: '#60a5fa', fontWeight: '600' },
-  closeBtn: { fontSize: 18, color: '#4a5568', paddingLeft: 16 },
+  typeEmoji: { fontSize: 13 },
+  typeLabel: { fontSize: 12, color: '#60a5fa', fontWeight: '600' },
+  closeBtn: { fontSize: 16, color: '#3a3a4a' },
   title: {
     fontSize: 17,
-    color: '#f7fafc',
+    color: '#f0f0f0',
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -125,7 +116,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 16,
   },
-  metaText: { fontSize: 13, color: '#718096' },
-  metaDot: { fontSize: 13, color: '#2d3748' },
+  metaText: { fontSize: 12, color: '#4a5568' },
+  metaDot: { fontSize: 12, color: '#2d3748' },
   urgentText: { color: '#60a5fa' },
 })

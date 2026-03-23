@@ -24,6 +24,8 @@ export type MapEmber = {
   relit_at: string | null
   relight_count: number
   photo_urls: string[] | null
+  tiktok_link: string | null
+  show_tiktok: boolean | null
 }
 
 export type MapBlueEmber = {

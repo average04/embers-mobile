@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { StyleSheet, View, ActivityIndicator } from 'react-native'
+import { StyleSheet, View, Text, Animated, TouchableOpacity } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { DrawerActions } from '@react-navigation/native'
+import { TopBar } from '@/components/navigation/TopBar'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import * as Location from 'expo-location'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -7,7 +10,7 @@ import { useMapStore, type Region } from '@/store/mapStore'
 import { useMapEmbers, type MapEmber, type MapBlueEmber } from '@/hooks/useMapEmbers'
 import { EmberDetailSheet } from '@/components/ember/EmberDetailSheet'
 import { BlueEmberDetailSheet } from '@/components/ember/BlueEmberDetailSheet'
-import { LocationSearch } from '@/components/map/LocationSearch'
+// import { LocationSearch } from '@/components/map/LocationSearch'
 import { supabase } from '@/lib/supabase/client'
 import { buildMapHtml } from '@/lib/leafletMap'
 
@@ -15,6 +18,7 @@ const DEFAULT_ZOOM = 11
 const MAP_HTML = buildMapHtml(14.5995, 120.9842, DEFAULT_ZOOM)
 
 export default function MapScreen() {
+  const navigation = useNavigation()
   const { region, setRegion, selectedEmberId, selectedEmberType, setSelectedEmber } = useMapStore()
   const [queryRegion, setQueryRegion] = useState(region)
   const [mapReady, setMapReady] = useState(false)
@@ -23,6 +27,19 @@ export default function MapScreen() {
 
   const { embers, blueEmbers, isLoading } = useMapEmbers(queryRegion)
   const queryClient = useQueryClient()
+  const flickerAnim = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    if (!isLoading) return
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(flickerAnim, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(flickerAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    )
+    anim.start()
+    return () => anim.stop()
+  }, [isLoading, flickerAnim])
 
   // Fetch full ember detail from Supabase only when a marker is tapped
   const { data: selectedEmber } = useQuery<MapEmber | null>({
@@ -30,7 +47,7 @@ export default function MapScreen() {
     queryFn: async () => {
       const { data } = await supabase
         .from('embers')
-        .select('id, thought, lat, lng, ember_type, user_id, username, created_at, relit_at, relight_count, photo_urls')
+        .select('id, thought, lat, lng, ember_type, user_id, username, created_at, relit_at, relight_count, photo_urls, tiktok_link, show_tiktok')
         .eq('id', selectedEmberId!)
         .single()
       return data as MapEmber | null
@@ -144,6 +161,21 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
+      <TopBar />
+
+      {/* Embers logo */}
+      <View style={styles.logoBlock} pointerEvents="none">
+        <Text style={styles.logoText}>Embers</Text>
+      </View>
+
+      {/* Drawer trigger — pinned to left edge */}
+      <TouchableOpacity
+        style={styles.drawerArrow}
+        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.drawerArrowIcon}>›</Text>
+      </TouchableOpacity>
       <WebView
         ref={webViewRef}
         style={styles.map}
@@ -155,7 +187,7 @@ export default function MapScreen() {
         allowsInlineMediaPlayback
       />
 
-      <LocationSearch
+      {/* <LocationSearch
         onSelect={(newRegion) => {
           setRegion(newRegion)
           setQueryRegion(newRegion)
@@ -166,12 +198,12 @@ export default function MapScreen() {
             zoom: 13,
           }))
         }}
-      />
+      /> */}
 
       {isLoading && (
-        <View style={styles.loadingBadge}>
-          <ActivityIndicator size="small" color="#e94560" />
-        </View>
+        <Animated.View style={[styles.loadingBadge, { opacity: flickerAnim }]}>
+          <Text style={styles.loadingText}>lighting up the map...</Text>
+        </Animated.View>
       )}
 
       {selectedEmber && (
@@ -187,12 +219,51 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   map: { ...StyleSheet.absoluteFillObject },
+  logoBlock: {
+    position: 'absolute',
+    top: 52,
+    left: 16,
+    zIndex: 100,
+  },
+  logoText: {
+    fontFamily: 'CormorantGaramond_300Light',
+    fontSize: 28,
+    color: '#f0f0f0',
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0,0,0,0.6)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  drawerArrow: {
+    position: 'absolute',
+    left: 0,
+    top: '40%',
+    width: 28,
+    height: 56,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: '#2a2a2a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  drawerArrowIcon: {
+    fontSize: 20,
+    color: '#aaaaaa',
+    lineHeight: 22,
+    marginLeft: 2,
+  },
   loadingBadge: {
     position: 'absolute',
-    top: 80,
+    top: 108,
     right: 16,
-    backgroundColor: '#0f1117',
-    borderRadius: 20,
-    padding: 8,
+  },
+  loadingText: {
+    fontSize: 11,
+    color: '#f97316',
+    letterSpacing: 0.5,
   },
 })

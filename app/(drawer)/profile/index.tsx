@@ -4,12 +4,14 @@ import { useRouter } from 'expo-router'
 import { useAuth } from '@/hooks/useAuth'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/Button'
+import { TopBar } from '@/components/navigation/TopBar'
 export default function ProfileScreen() {
   const router = useRouter()
   const { signOut } = useAuth()
   const profile = useAuthStore((s) => s.profile)
   return (
     <View style={styles.container}>
+      <TopBar />
       <Text style={styles.username}>@{profile?.username ?? '...'}</Text>
       <Text style={styles.sub}>Profile coming in Phase 4</Text>
       <TouchableOpacity onPress={() => router.push('/(drawer)/profile/settings')} style={styles.link}>
@@ -24,6 +26,6 @@ const styles = StyleSheet.create({
   username: { fontSize: 24, color: '#f7fafc', fontWeight: '700', marginBottom: 8 },
   sub: { fontSize: 14, color: '#4a5568', marginBottom: 32 },
   link: { marginBottom: 32 },
-  linkText: { color: '#e94560', fontSize: 16 },
+  linkText: { color: '#f97316', fontSize: 16 },
   signout: { width: '100%' },
 })

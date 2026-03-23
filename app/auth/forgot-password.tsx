@@ -47,6 +47,9 @@ export default function ForgotPasswordScreen() {
       <TouchableOpacity onPress={() => router.back()} style={styles.backLink}>
         <Text style={styles.backText}>Back to sign in</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => router.replace('/')} style={styles.homeLink}>
+        <Text style={styles.homeText}>Home</Text>
+      </TouchableOpacity>
     </AuthLayout>
   )
 }
@@ -57,4 +60,6 @@ const styles = StyleSheet.create({
   button: { marginTop: 8 },
   backLink: { alignItems: 'center', marginTop: 20 },
   backText: { fontSize: 11, color: '#3a3a4a' },
+  homeLink: { alignItems: 'center', marginTop: 12 },
+  homeText: { fontSize: 11, color: '#3a3a4a' },
 })
