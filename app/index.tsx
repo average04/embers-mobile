@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
   // Skip welcome screen for authenticated users who have completed setup
   useEffect(() => {
     if (session && profile?.username) {
-      router.replace('/(drawer)/map')
+      router.replace('/(tabs)/map')
     } else if (session && !profile?.username) {
       router.replace('/auth/setup-username')
     }
@@ -27,7 +27,7 @@ export default function WelcomeScreen() {
       <Text style={styles.tagline}>where you can light your thoughts</Text>
       <TouchableOpacity
         style={styles.goButton}
-        onPress={() => router.replace('/(drawer)/map')}
+        onPress={() => router.replace('/(tabs)/map')}
         activeOpacity={0.7}
       >
         <Text style={styles.goText}>GO</Text>

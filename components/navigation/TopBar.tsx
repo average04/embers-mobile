@@ -9,7 +9,7 @@ export function TopBar() {
 
   function handleProfilePress() {
     if (session) {
-      router.push('/(drawer)/profile')
+      router.push('/profile')
     } else {
       router.push('/auth/login')
     }
