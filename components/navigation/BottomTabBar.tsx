@@ -1,8 +1,14 @@
 // components/navigation/BottomTabBar.tsx
 import React from 'react'
-import { View, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
+
+const LABELS: Record<string, string> = {
+  map: 'Map',
+  feed: 'Feed',
+  boards: 'Boards',
+}
 
 const ICONS: Record<string, { d: string }> = {
   map: {
@@ -47,6 +53,9 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
             >
               {icon && <Path d={icon.d} />}
             </Svg>
+            <Text style={[styles.label, isFocused && styles.labelActive]}>
+              {LABELS[route.name] ?? route.name}
+            </Text>
             <View style={[styles.dot, isFocused && styles.dotActive]} />
           </TouchableOpacity>
         )
@@ -58,7 +67,7 @@ export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
-    height: 58,
+    height: 62,
     backgroundColor: '#0a0a0a',
     borderTopWidth: 1,
     borderTopColor: '#181818',
@@ -67,8 +76,16 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 10,
     alignItems: 'center',
-    gap: 5,
+    gap: 4,
     paddingBottom: 8,
+  },
+  label: {
+    fontSize: 10,
+    color: '#3a3a4a',
+    letterSpacing: 0.4,
+  },
+  labelActive: {
+    color: '#f97316',
   },
   dot: {
     width: 4,

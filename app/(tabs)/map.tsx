@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { StyleSheet, View, Text, Animated } from 'react-native'
+import { StyleSheet, View, Text, Animated, TouchableOpacity, Platform } from 'react-native'
+import Svg, { Path } from 'react-native-svg'
 import { TopBar } from '@/components/navigation/TopBar'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import * as Location from 'expo-location'
@@ -25,6 +26,7 @@ export default function MapScreen() {
   const { embers, blueEmbers, isLoading } = useMapEmbers(queryRegion)
   const queryClient = useQueryClient()
   const flickerAnim = useRef(new Animated.Value(1)).current
+  const [searchOpen, setSearchOpen] = useState(false)
 
   useEffect(() => {
     if (!isLoading) return
@@ -176,20 +178,55 @@ export default function MapScreen() {
         allowsInlineMediaPlayback
       />
 
-      <View style={styles.searchWrapper}>
-        <LocationSearch
-          onSelect={(newRegion) => {
-            setRegion(newRegion)
-            setQueryRegion(newRegion)
-            webViewRef.current?.postMessage(JSON.stringify({
-              type: 'JUMP_TO',
-              lat: newRegion.latitude,
-              lng: newRegion.longitude,
-              zoom: 13,
-            }))
-          }}
-        />
+      {/* Floating action bar */}
+      <View style={styles.actionBarWrapper} pointerEvents="box-none">
+        {/* Single pill bar */}
+        <View style={styles.actionBar} pointerEvents="box-none">
+          {/* Search */}
+          <TouchableOpacity style={styles.actionSide} onPress={() => setSearchOpen(v => !v)} activeOpacity={0.7} pointerEvents="auto">
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={searchOpen ? '#f97316' : '#888'} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <Path d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </Svg>
+            <Text style={[styles.actionLabel, searchOpen && { color: '#f97316' }]}>Search</Text>
+          </TouchableOpacity>
+
+          {/* Center spacer for Add button */}
+          <View style={styles.actionCenterGap} />
+
+          {/* Random */}
+          <TouchableOpacity style={styles.actionSide} activeOpacity={0.7} pointerEvents="auto">
+            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <Path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </Svg>
+            <Text style={styles.actionLabel}>Random</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Add button — centered, elevated above bar */}
+        <TouchableOpacity style={styles.actionAdd} activeOpacity={0.8} pointerEvents="auto">
+          <Text style={styles.actionAddIcon}>+</Text>
+          <Text style={styles.actionAddLabel}>Add</Text>
+        </TouchableOpacity>
       </View>
+
+      {/* Search panel */}
+      {searchOpen && (
+        <View style={styles.searchWrapper}>
+          <LocationSearch
+            onSelect={(newRegion) => {
+              setRegion(newRegion)
+              setQueryRegion(newRegion)
+              setSearchOpen(false)
+              webViewRef.current?.postMessage(JSON.stringify({
+                type: 'JUMP_TO',
+                lat: newRegion.latitude,
+                lng: newRegion.longitude,
+                zoom: 13,
+              }))
+            }}
+          />
+        </View>
+      )}
 
       {isLoading && (
         <Animated.View style={[styles.loadingBadge, { opacity: flickerAnim }]}>
@@ -225,17 +262,83 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
+  actionBarWrapper: {
+    position: 'absolute',
+    bottom: 24,
+    left: 90,
+    right: 90,
+    height: 66,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    zIndex: 100,
+  },
+  actionBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 42,
+    backgroundColor: 'rgba(12,12,12,0.92)',
+    borderRadius: 21,
+    borderWidth: 1,
+    borderColor: '#252525',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionSide: {
+    flex: 1,
+    height: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+  },
+  actionCenterGap: {
+    width: 60,
+  },
+  actionLabel: {
+    fontSize: 9,
+    color: '#888',
+    letterSpacing: 0.2,
+  },
+  actionAdd: {
+    position: 'absolute',
+    top: 0,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#f97316',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  actionAddIcon: {
+    fontSize: 22,
+    color: '#fff',
+    lineHeight: 26,
+    marginBottom: -3,
+  },
+  actionAddLabel: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.85)',
+    letterSpacing: 0.5,
+    marginTop: 1,
+  },
   searchWrapper: {
     position: 'absolute',
-    top: 100,
+    top: 110,
     left: 16,
     right: 16,
     zIndex: 50,
   },
   loadingBadge: {
     position: 'absolute',
-    top: 108,
-    right: 16,
+    top: 90,
+    left: 16,
   },
   loadingText: {
     fontSize: 11,
