@@ -1,7 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
-import { StyleSheet, View, Text, Animated, TouchableOpacity } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
-import { DrawerActions } from '@react-navigation/native'
+import { StyleSheet, View, Text, Animated } from 'react-native'
 import { TopBar } from '@/components/navigation/TopBar'
 import { WebView, type WebViewMessageEvent } from 'react-native-webview'
 import * as Location from 'expo-location'
@@ -10,7 +8,7 @@ import { useMapStore, type Region } from '@/store/mapStore'
 import { useMapEmbers, type MapEmber, type MapBlueEmber } from '@/hooks/useMapEmbers'
 import { EmberDetailSheet } from '@/components/ember/EmberDetailSheet'
 import { BlueEmberDetailSheet } from '@/components/ember/BlueEmberDetailSheet'
-// import { LocationSearch } from '@/components/map/LocationSearch'
+import { LocationSearch } from '@/components/map/LocationSearch'
 import { supabase } from '@/lib/supabase/client'
 import { buildMapHtml } from '@/lib/leafletMap'
 
@@ -18,7 +16,6 @@ const DEFAULT_ZOOM = 11
 const MAP_HTML = buildMapHtml(14.5995, 120.9842, DEFAULT_ZOOM)
 
 export default function MapScreen() {
-  const navigation = useNavigation()
   const { region, setRegion, selectedEmberId, selectedEmberType, setSelectedEmber } = useMapStore()
   const [queryRegion, setQueryRegion] = useState(region)
   const [mapReady, setMapReady] = useState(false)
@@ -168,14 +165,6 @@ export default function MapScreen() {
         <Text style={styles.logoText}>Embers</Text>
       </View>
 
-      {/* Drawer trigger — pinned to left edge */}
-      <TouchableOpacity
-        style={styles.drawerArrow}
-        onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.drawerArrowIcon}>›</Text>
-      </TouchableOpacity>
       <WebView
         ref={webViewRef}
         style={styles.map}
@@ -187,18 +176,20 @@ export default function MapScreen() {
         allowsInlineMediaPlayback
       />
 
-      {/* <LocationSearch
-        onSelect={(newRegion) => {
-          setRegion(newRegion)
-          setQueryRegion(newRegion)
-          webViewRef.current?.postMessage(JSON.stringify({
-            type: 'JUMP_TO',
-            lat: newRegion.latitude,
-            lng: newRegion.longitude,
-            zoom: 13,
-          }))
-        }}
-      /> */}
+      <View style={styles.searchWrapper}>
+        <LocationSearch
+          onSelect={(newRegion) => {
+            setRegion(newRegion)
+            setQueryRegion(newRegion)
+            webViewRef.current?.postMessage(JSON.stringify({
+              type: 'JUMP_TO',
+              lat: newRegion.latitude,
+              lng: newRegion.longitude,
+              zoom: 13,
+            }))
+          }}
+        />
+      </View>
 
       {isLoading && (
         <Animated.View style={[styles.loadingBadge, { opacity: flickerAnim }]}>
@@ -234,27 +225,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
   },
-  drawerArrow: {
+  searchWrapper: {
     position: 'absolute',
-    left: 0,
-    top: '40%',
-    width: 28,
-    height: 56,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderTopRightRadius: 10,
-    borderBottomRightRadius: 10,
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: '#2a2a2a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  drawerArrowIcon: {
-    fontSize: 20,
-    color: '#aaaaaa',
-    lineHeight: 22,
-    marginLeft: 2,
+    top: 100,
+    left: 16,
+    right: 16,
+    zIndex: 50,
   },
   loadingBadge: {
     position: 'absolute',
