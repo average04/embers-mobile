@@ -279,6 +279,8 @@ export function buildMapHtml(lat: number, lng: number, zoom: number): string {
         updateEmbers(msg.embers || [], msg.location || null);
       } else if (msg.type === 'JUMP_TO') {
         map.setView([msg.lat, msg.lng], msg.zoom || 13, { animate: true });
+      } else if (msg.type === 'FLY_TO') {
+        map.flyTo([msg.lat, msg.lng], msg.zoom || 15, { animate: true, duration: 1.2 });
       }
     } catch (e) {}
   }

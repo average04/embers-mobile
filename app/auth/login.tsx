@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginScreen() {
@@ -13,6 +14,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
   function validate(): boolean {
     const newErrors: typeof errors = {}
@@ -25,10 +27,19 @@ export default function LoginScreen() {
 
   async function handleSignIn() {
     if (!validate()) return
+    if (!captchaToken) {
+      Alert.alert('Please complete the security check')
+      return
+    }
     setLoading(true)
-    const { error } = await signIn(email.trim(), password)
+    const { error } = await signIn(email.trim(), password, captchaToken)
     setLoading(false)
-    if (error) Alert.alert('Login failed', error)
+    if (error) {
+      Alert.alert('Login failed', error)
+      setCaptchaToken(null)
+    } else {
+      router.replace('/')
+    }
   }
 
   return (
@@ -56,7 +67,16 @@ export default function LoginScreen() {
       >
         <Text style={styles.forgotText}>Forgot password?</Text>
       </TouchableOpacity>
-      <Button label="Sign in" onPress={handleSignIn} loading={loading} style={styles.button} />
+      <TurnstileWidget
+        onToken={setCaptchaToken}
+        onExpired={() => setCaptchaToken(null)}
+      />
+      <Button
+        label={captchaToken ? 'Sign in' : 'Complete the security check'}
+        onPress={handleSignIn}
+        loading={loading}
+        style={styles.button}
+      />
       <TouchableOpacity onPress={() => router.push('/auth/signup')} style={styles.switchLink}>
         <Text style={styles.switchText}>
           Don't have an account?{' '}
@@ -81,7 +101,7 @@ const styles = StyleSheet.create({
     color: '#f97316',
   },
   button: {
-    marginTop: 16,
+    marginTop: 8,
   },
   switchLink: {
     alignItems: 'center',

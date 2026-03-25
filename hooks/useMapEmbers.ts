@@ -26,6 +26,7 @@ export type MapEmber = {
   photo_urls: string[] | null
   tiktok_link: string | null
   show_tiktok: boolean | null
+  view_count: number | null
 }
 
 export type MapBlueEmber = {
@@ -88,6 +89,8 @@ export function useMapEmbers(region: Region) {
 
   const embers: MapEmberMarker[] = []
   const blueEmbers: MapBlueEmberMarker[] = []
+  const allEmbers: MapEmberMarker[] = []
+  const allBlueEmbers: MapBlueEmberMarker[] = []
 
   if (data) {
     const { orange, blue } = data
@@ -96,25 +99,23 @@ export function useMapEmbers(region: Region) {
     for (let i = 0; i < (orange.ids?.length ?? 0); i++) {
       const lat = orange.lats[i]
       const lng = orange.lngs[i]
-      if (
-        isActiveEpoch(orange.cats[i], orange.rats[i], ORANGE_EXPIRY_MS) &&
-        inViewport(lat, lng, region)
-      ) {
-        embers.push({ id: orange.ids[i], lat, lng })
+      if (isActiveEpoch(orange.cats[i], orange.rats[i], ORANGE_EXPIRY_MS)) {
+        const marker = { id: orange.ids[i], lat, lng }
+        allEmbers.push(marker)
+        if (inViewport(lat, lng, region)) embers.push(marker)
       }
     }
 
     // Parse blue embers array format: { id, position: [lat, lng], created_at, relit_at? }
     for (const b of blue ?? []) {
       const [lat, lng] = b.position
-      if (
-        isActiveIso(b.created_at, b.relit_at, BLUE_EXPIRY_MS) &&
-        inViewport(lat, lng, region)
-      ) {
-        blueEmbers.push({ id: b.id, lat, lng })
+      if (isActiveIso(b.created_at, b.relit_at, BLUE_EXPIRY_MS)) {
+        const marker = { id: b.id, lat, lng }
+        allBlueEmbers.push(marker)
+        if (inViewport(lat, lng, region)) blueEmbers.push(marker)
       }
     }
   }
 
-  return { embers, blueEmbers, isLoading, error, refetch }
+  return { embers, blueEmbers, allEmbers, allBlueEmbers, isLoading, error, refetch }
 }

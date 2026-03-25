@@ -2,13 +2,21 @@ import { supabase } from '@/lib/supabase/client'
 
 export function useAuth() {
 
-  async function signIn(email: string, password: string): Promise<{ error: string | null }> {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+  async function signIn(email: string, password: string, captchaToken?: string): Promise<{ error: string | null }> {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    })
     return { error: error?.message ?? null }
   }
 
-  async function signUp(email: string, password: string): Promise<{ error: string | null }> {
-    const { error } = await supabase.auth.signUp({ email, password })
+  async function signUp(email: string, password: string, captchaToken?: string): Promise<{ error: string | null }> {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    })
     return { error: error?.message ?? null }
   }
 

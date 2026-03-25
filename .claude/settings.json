@@ -11,7 +11,9 @@
       "Bash(npx tsc:*)",
       "Bash(ls \"/d/Projects/embers-mobile/app/\\(tabs\\)/\")",
       "Bash(git add:*)",
-      "Bash(git -C /d/Projects/embers-mobile status)"
+      "Bash(git -C /d/Projects/embers-mobile status)",
+      "Bash(find /d/Projects/embers-web-app/embers-web-app -type f \\\\\\(-name *profile* -o -name *Profile* \\\\\\))",
+      "Bash(bash \"C:/Users/laptop/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.5/skills/brainstorming/scripts/start-server.sh\" --project-dir \"d:/Projects/embers-mobile\")"
     ]
   }
 }

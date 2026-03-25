@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@/store/authStore'
 
@@ -15,11 +15,19 @@ export function TopBar() {
     }
   }
 
+  const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
+
   return (
     <View style={styles.container} pointerEvents="box-none">
       {session && profile?.username ? (
         <TouchableOpacity style={styles.profilePill} onPress={handleProfilePress} activeOpacity={0.8}>
-          <View style={styles.avatar} />
+          <View style={styles.avatar}>
+            {profile.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+            ) : (
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            )}
+          </View>
           <Text style={styles.profileLabel}>@{profile.username}</Text>
         </TouchableOpacity>
       ) : (
@@ -57,14 +65,25 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   avatar: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: '#2a2a2a',
     borderWidth: 1,
     borderColor: '#333333',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImg: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  avatarInitial: {
+    fontSize: 10,
+    color: '#aaa',
+    fontWeight: '600',
   },
   profileLabel: {
     fontSize: 11,

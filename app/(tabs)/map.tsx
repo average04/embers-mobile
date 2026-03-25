@@ -23,7 +23,9 @@ export default function MapScreen() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const webViewRef = useRef<WebView>(null)
 
-  const { embers, blueEmbers, isLoading } = useMapEmbers(queryRegion)
+  const { embers, blueEmbers, allEmbers, allBlueEmbers, isLoading } = useMapEmbers(queryRegion)
+  const spinAnim = useRef(new Animated.Value(0)).current
+  const spinLoopRef = useRef<Animated.CompositeAnimation | null>(null)
   const queryClient = useQueryClient()
   const flickerAnim = useRef(new Animated.Value(1)).current
   const [searchOpen, setSearchOpen] = useState(false)
@@ -46,7 +48,7 @@ export default function MapScreen() {
     queryFn: async () => {
       const { data } = await supabase
         .from('embers')
-        .select('id, thought, lat, lng, ember_type, user_id, username, created_at, relit_at, relight_count, photo_urls, tiktok_link, show_tiktok')
+        .select('id, thought, lat, lng, ember_type, user_id, username, created_at, relit_at, relight_count, photo_urls, tiktok_link, show_tiktok, view_count')
         .eq('id', selectedEmberId!)
         .single()
       return data as MapEmber | null
@@ -194,10 +196,37 @@ export default function MapScreen() {
           <View style={styles.actionCenterGap} />
 
           {/* Random */}
-          <TouchableOpacity style={styles.actionSide} activeOpacity={0.7} pointerEvents="auto">
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-              <Path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </Svg>
+          <TouchableOpacity
+            style={styles.actionSide}
+            activeOpacity={0.7}
+            pointerEvents="auto"
+            onPress={() => {
+              const all = [
+                ...allEmbers.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, kind: 'orange' as const })),
+                ...allBlueEmbers.map(b => ({ id: b.id, lat: b.lat, lng: b.lng, kind: 'blue' as const })),
+              ]
+              if (!all.length) return
+              const pick = all[Math.floor(Math.random() * all.length)]
+
+              spinAnim.setValue(0)
+              spinLoopRef.current = Animated.loop(
+                Animated.timing(spinAnim, { toValue: 1, duration: 600, useNativeDriver: true })
+              )
+              spinLoopRef.current.start()
+
+              webViewRef.current?.postMessage(JSON.stringify({ type: 'FLY_TO', lat: pick.lat, lng: pick.lng, zoom: 15 }))
+              setTimeout(() => {
+                spinLoopRef.current?.stop()
+                spinAnim.setValue(0)
+                setSelectedEmber(pick.id, pick.kind)
+              }, 1300)
+            }}
+          >
+            <Animated.View style={{ transform: [{ rotate: spinAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }] }}>
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <Path d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </Svg>
+            </Animated.View>
             <Text style={styles.actionLabel}>Random</Text>
           </TouchableOpacity>
         </View>
@@ -267,7 +296,7 @@ const styles = StyleSheet.create({
     bottom: 24,
     left: 90,
     right: 90,
-    height: 66,
+    height: 72,
     alignItems: 'center',
     justifyContent: 'flex-end',
     zIndex: 100,
@@ -277,9 +306,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 42,
+    height: 48,
     backgroundColor: 'rgba(12,12,12,0.92)',
-    borderRadius: 21,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#252525',
     flexDirection: 'row',
@@ -303,7 +332,7 @@ const styles = StyleSheet.create({
   },
   actionAdd: {
     position: 'absolute',
-    top: 0,
+    top: 4,
     width: 58,
     height: 58,
     borderRadius: 29,

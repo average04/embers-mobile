@@ -1,0 +1,88 @@
+<h2>Profile Page Layout</h2>
+<p class="subtitle">Which layout feels right for the basic profile page?</p>
+
+<div class="cards">
+
+  <!-- Option A: Compact header + tabs -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0a0a0a;border-radius:8px;padding:16px;font-family:sans-serif;color:#f0f0f0;min-height:320px">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div style="width:56px;height:56px;border-radius:28px;background:#1a1a1a;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:22px;color:#f97316">J</div>
+          <div>
+            <div style="font-size:16px;font-weight:700;color:#fff">@john_doe</div>
+            <div style="font-size:11px;color:#555;margin-top:2px">joined march 2025</div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:20px;text-align:center">
+            <div><div style="font-size:16px;font-weight:700;color:#f97316">14</div><div style="font-size:9px;color:#555;letter-spacing:.5px">EMBERS</div></div>
+            <div><div style="font-size:16px;font-weight:700;color:#3b82f6">3</div><div style="font-size:9px;color:#555;letter-spacing:.5px">WHISPERS</div></div>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid #1a1a1a;margin-bottom:12px">
+          <div style="padding:8px 14px;font-size:11px;color:#f97316;border-bottom:2px solid #f97316;letter-spacing:.5px">EMBERS</div>
+          <div style="padding:8px 14px;font-size:11px;color:#444;letter-spacing:.5px">WHISPERS</div>
+        </div>
+        <!-- Ember cards -->
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:#111;border-radius:8px;padding:10px 12px;border:1px solid #1e1e1e">
+            <div style="font-size:9px;color:#f97316;letter-spacing:.5px;margin-bottom:5px">✦ THOUGHT</div>
+            <div style="font-size:12px;color:#ccc;line-height:1.5">Sometimes I wonder if the strangest thoughts are actually the wisest ones...</div>
+            <div style="font-size:9px;color:#444;margin-top:6px">3d ago · 7 relights</div>
+          </div>
+          <div style="background:#111;border-radius:8px;padding:10px 12px;border:1px solid #1e1e1e">
+            <div style="font-size:9px;color:#f97316;letter-spacing:.5px;margin-bottom:5px">☁ DREAM</div>
+            <div style="font-size:12px;color:#ccc;line-height:1.5">I dreamed of a city floating above the clouds...</div>
+            <div style="font-size:9px;color:#444;margin-top:6px">1w ago · 2 relights</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Compact Header + Tabs</h3>
+      <p>Small avatar row, stats inline, tabs for Embers / Whispers. Space-efficient.</p>
+    </div>
+  </div>
+
+  <!-- Option B: Hero header -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#0a0a0a;border-radius:8px;font-family:sans-serif;color:#f0f0f0;min-height:320px;overflow:hidden">
+        <!-- Hero glow bg -->
+        <div style="background:radial-gradient(ellipse at 50% 0%,rgba(249,115,22,0.12) 0%,transparent 70%);padding:28px 16px 16px;text-align:center">
+          <div style="width:72px;height:72px;border-radius:36px;background:#1a1a1a;border:2px solid #f97316;display:inline-flex;align-items:center;justify-content:center;font-size:28px;color:#f97316;margin-bottom:10px">J</div>
+          <div style="font-size:18px;font-weight:700;color:#fff">@john_doe</div>
+          <div style="font-size:11px;color:#555;margin-top:3px">joined march 2025</div>
+          <div style="display:flex;justify-content:center;gap:28px;margin-top:12px">
+            <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#f97316">14</div><div style="font-size:9px;color:#555;letter-spacing:.5px">EMBERS</div></div>
+            <div style="text-align:center"><div style="font-size:18px;font-weight:700;color:#3b82f6">3</div><div style="font-size:9px;color:#555;letter-spacing:.5px">WHISPERS</div></div>
+          </div>
+        </div>
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1px solid #1a1a1a;padding:0 16px">
+          <div style="padding:8px 14px;font-size:11px;color:#f97316;border-bottom:2px solid #f97316;letter-spacing:.5px">EMBERS</div>
+          <div style="padding:8px 14px;font-size:11px;color:#444;letter-spacing:.5px">WHISPERS</div>
+        </div>
+        <!-- Ember cards -->
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px">
+          <div style="background:#111;border-radius:8px;padding:10px 12px;border:1px solid #1e1e1e">
+            <div style="font-size:9px;color:#f97316;letter-spacing:.5px;margin-bottom:5px">✦ THOUGHT</div>
+            <div style="font-size:12px;color:#ccc;line-height:1.5">Sometimes I wonder if the strangest thoughts are actually the wisest ones...</div>
+            <div style="font-size:9px;color:#444;margin-top:6px">3d ago · 7 relights</div>
+          </div>
+          <div style="background:#111;border-radius:8px;padding:10px 12px;border:1px solid #1e1e1e">
+            <div style="font-size:9px;color:#f97316;letter-spacing:.5px;margin-bottom:5px">☁ DREAM</div>
+            <div style="font-size:12px;color:#ccc;line-height:1.5">I dreamed of a city floating above the clouds...</div>
+            <div style="font-size:9px;color:#444;margin-top:6px">1w ago · 2 relights</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Hero Header</h3>
+      <p>Centered avatar with orange glow, bigger presence, stats below name. More visual impact.</p>
+    </div>
+  </div>
+
+</div>

@@ -11,6 +11,8 @@ export default function TabLayout() {
       <Tabs.Screen name="map" />
       <Tabs.Screen name="feed" />
       <Tabs.Screen name="boards" />
+      <Tabs.Screen name="notifications" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   )
 }

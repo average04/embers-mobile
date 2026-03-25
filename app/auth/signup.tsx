@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router'
 import { AuthLayout } from '@/components/auth/AuthLayout'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { TurnstileWidget } from '@/components/auth/TurnstileWidget'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function SignupScreen() {
@@ -14,6 +15,7 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirm?: string }>({})
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
 
   function validate(): boolean {
     const newErrors: typeof errors = {}
@@ -28,11 +30,16 @@ export default function SignupScreen() {
 
   async function handleSignUp() {
     if (!validate()) return
+    if (!captchaToken) {
+      Alert.alert('Please complete the security check')
+      return
+    }
     setLoading(true)
-    const { error } = await signUp(email.trim(), password)
+    const { error } = await signUp(email.trim(), password, captchaToken)
     setLoading(false)
     if (error) {
       Alert.alert('Signup failed', error)
+      setCaptchaToken(null)
     } else {
       Alert.alert(
         'Check your email',
@@ -47,7 +54,16 @@ export default function SignupScreen() {
       <Input label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" error={errors.email} />
       <Input label="Password" value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" error={errors.password} />
       <Input label="Confirm password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry error={errors.confirm} />
-      <Button label="Create account" onPress={handleSignUp} loading={loading} style={styles.button} />
+      <TurnstileWidget
+        onToken={setCaptchaToken}
+        onExpired={() => setCaptchaToken(null)}
+      />
+      <Button
+        label={captchaToken ? 'Create account' : 'Complete the security check'}
+        onPress={handleSignUp}
+        loading={loading}
+        style={styles.button}
+      />
       <TouchableOpacity onPress={() => router.back()} style={styles.switchLink}>
         <Text style={styles.switchText}>
           Already have an account?{' '}

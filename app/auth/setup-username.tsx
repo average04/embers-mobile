@@ -13,10 +13,14 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 
 export default function SetupUsernameScreen() {
   const router = useRouter()
-  const { session, setProfile } = useAuthStore()
+  const { session, profile, setProfile } = useAuthStore()
   const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  React.useEffect(() => {
+    if (profile?.username) router.replace('/(tabs)/map')
+  }, [profile?.username])
 
   function validate(): boolean {
     if (!username.trim()) { setError('Username is required'); return false }
@@ -60,6 +64,7 @@ export default function SetupUsernameScreen() {
     }
 
     setProfile(updatedProfile as Profile)
+    router.replace('/(tabs)/map')
   }
 
   return (
