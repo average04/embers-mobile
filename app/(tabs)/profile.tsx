@@ -9,6 +9,7 @@ import {
   Image,
   Animated,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
@@ -16,6 +17,7 @@ import { useAuthStore } from '@/store/authStore'
 import { EmberCard, type ProfileEmber } from '@/components/profile/EmberCard'
 import { BlueEmberCard, type ProfileBlueEmber } from '@/components/profile/BlueEmberCard'
 import { SettingsSheet } from '@/components/profile/SettingsSheet'
+import { FollowListSheet } from '@/components/profile/FollowListSheet'
 
 type ActiveTab = 'embers' | 'blue'
 
@@ -37,10 +39,12 @@ function SkeletonCard() {
 }
 
 export default function ProfileTab() {
+  const insets = useSafeAreaInsets()
   const profile = useAuthStore((s) => s.profile)
   const session = useAuthStore((s) => s.session)
   const [activeTab, setActiveTab] = useState<ActiveTab>('embers')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null)
 
   // Reset to Embers tab every time screen comes into focus (spec requirement)
   useFocusEffect(React.useCallback(() => { setActiveTab('embers') }, []))
@@ -75,6 +79,35 @@ export default function ProfileTab() {
 
   const emberCount = embersQuery.data?.length ?? 0
   const blueCount = blueEmbersQuery.data?.length ?? 0
+
+  const followerCountQuery = useQuery<number>({
+    queryKey: ['followerCount', session?.user.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('following_id', session!.user.id)
+      if (error) throw error
+      return count ?? 0
+    },
+    enabled: !!session,
+  })
+
+  const followingCountQuery = useQuery<number>({
+    queryKey: ['followingCount', session?.user.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('follows')
+        .select('id', { count: 'exact', head: true })
+        .eq('follower_id', session!.user.id)
+      if (error) throw error
+      return count ?? 0
+    },
+    enabled: !!session,
+  })
+
+  const followerCount = followerCountQuery.data ?? 0
+  const followingCount = followingCountQuery.data ?? 0
   const initial = profile?.username?.charAt(0).toUpperCase() ?? '?'
 
   const joinedDate = profile?.created_at
@@ -125,7 +158,7 @@ export default function ProfileTab() {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Hero header */}
-        <View style={styles.hero}>
+        <View style={[styles.hero, { paddingTop: insets.top + 16 }]}>
           <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
             <Svg width="100%" height="100%" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
               <Defs>
@@ -138,7 +171,7 @@ export default function ProfileTab() {
             </Svg>
           </View>
           {/* Gear button */}
-          <TouchableOpacity style={styles.gearBtn} onPress={() => setSettingsOpen(true)} activeOpacity={0.7}>
+          <TouchableOpacity style={[styles.gearBtn, { top: insets.top + 14 }]} onPress={() => setSettingsOpen(true)} activeOpacity={0.7}>
             <Svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
               <Path d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />
               <Path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -155,6 +188,21 @@ export default function ProfileTab() {
           </View>
 
           <Text style={styles.username}>@{profile?.username ?? '...'}</Text>
+          <View style={styles.followRow}>
+            <TouchableOpacity onPress={() => setFollowListType('followers')} activeOpacity={0.7}>
+              <Text style={styles.followText}>
+                <Text style={styles.followCount}>{followerCount}</Text>
+                {' followers'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.followDot}> · </Text>
+            <TouchableOpacity onPress={() => setFollowListType('following')} activeOpacity={0.7}>
+              <Text style={styles.followText}>
+                <Text style={styles.followCount}>{followingCount}</Text>
+                {' following'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           {joinedDate ? <Text style={styles.joinDate}>member since {joinedDate.toLowerCase()}</Text> : null}
 
           {/* Stats */}
@@ -190,6 +238,12 @@ export default function ProfileTab() {
       </ScrollView>
 
       <SettingsSheet visible={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <FollowListSheet
+        visible={followListType !== null}
+        onClose={() => setFollowListType(null)}
+        type={followListType ?? 'followers'}
+        count={followListType === 'following' ? followingCount : followerCount}
+      />
     </View>
   )
 }
@@ -199,13 +253,11 @@ const styles = StyleSheet.create({
   scroll: { paddingBottom: 40 },
   hero: {
     alignItems: 'center',
-    paddingTop: 56,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   gearBtn: {
     position: 'absolute',
-    top: 14,
     right: 16,
     width: 36,
     height: 36,
@@ -237,6 +289,10 @@ const styles = StyleSheet.create({
   avatarInitial: { fontSize: 28, color: '#f97316', fontWeight: '300' },
   username: { fontSize: 19, fontWeight: '700', color: '#ffffff', letterSpacing: 0.3 },
   joinDate: { fontSize: 11, color: '#444', marginTop: 3, letterSpacing: 0.3 },
+  followRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
+  followText: { fontSize: 12, color: '#888' },
+  followCount: { color: '#ccc', fontWeight: '600' },
+  followDot: { fontSize: 12, color: '#888' },
   stats: {
     flexDirection: 'row',
     alignItems: 'center',
