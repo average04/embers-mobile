@@ -147,11 +147,11 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
     if (listQuery.isLoading || myFollowsQuery.isLoading) {
       return <><SkeletonRow /><SkeletonRow /><SkeletonRow /></>
     }
-    if (listQuery.isError) {
+    if (listQuery.isError || myFollowsQuery.isError) {
       return (
         <View style={styles.centered}>
           <Text style={styles.emptyText}>couldn't load</Text>
-          <TouchableOpacity onPress={() => listQuery.refetch()} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => { listQuery.refetch(); myFollowsQuery.refetch() }} activeOpacity={0.7}>
             <Text style={styles.retryText}>retry</Text>
           </TouchableOpacity>
         </View>

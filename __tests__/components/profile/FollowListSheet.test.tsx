@@ -104,4 +104,48 @@ describe('FollowListSheet', () => {
     )
     await waitFor(() => expect(getByText('not following anyone yet')).toBeTruthy())
   })
+
+  it('optimistically toggles follow state and rolls back on error', async () => {
+    const { fireEvent } = require('@testing-library/react-native')
+
+    // followers list: select('follower_id') → alice is a follower
+    // myFollows: select('following_id') → empty (I don't follow alice yet)
+    // insert: returns error to trigger rollback
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({ data: [{ id: 'u1', username: 'alice_sparks' }], error: null }),
+          }),
+        }
+      }
+      return {
+        select: jest.fn().mockImplementation((fields: string) => ({
+          eq: jest.fn().mockResolvedValue({
+            // follower_id select = list query; following_id select = myFollows (empty → not following)
+            data: fields === 'follower_id' ? [{ follower_id: 'u1', following_id: 'u1' }] : [],
+            error: null,
+          }),
+        })),
+        insert: jest.fn().mockResolvedValue({ error: { message: 'network error' } }),
+        delete: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ error: null }),
+          }),
+        }),
+      }
+    })
+
+    const { getByText } = render(<FollowListSheet {...defaultProps} />, { wrapper: makeWrapper() })
+
+    // Wait for "Follow" button to appear (not yet following alice)
+    await waitFor(() => expect(getByText('Follow')).toBeTruthy())
+
+    // Press Follow — optimistic update shows "Following" immediately
+    fireEvent.press(getByText('Follow'))
+    await waitFor(() => expect(getByText('Following')).toBeTruthy())
+
+    // Insert failed — should roll back to "Follow"
+    await waitFor(() => expect(getByText('Follow')).toBeTruthy())
+  })
 })
