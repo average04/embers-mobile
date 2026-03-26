@@ -22,6 +22,8 @@ export function FollowUserRow({ userId, username, isFollowing, onToggle }: Props
         style={[styles.btn, isFollowing && styles.btnFollowing]}
         onPress={() => onToggle(userId, !isFollowing)}
         activeOpacity={0.7}
+        accessibilityLabel={isFollowing ? `Unfollow ${username}` : `Follow ${username}`}
+        accessibilityRole="button"
       >
         <Text style={[styles.btnText, isFollowing && styles.btnTextFollowing]}>
           {isFollowing ? 'Following' : 'Follow'}

@@ -10,6 +10,8 @@ const base = {
 }
 
 describe('FollowUserRow', () => {
+  beforeEach(() => jest.clearAllMocks())
+
   it('renders the username', () => {
     const { getByText } = render(<FollowUserRow {...base} />)
     expect(getByText('@alice_sparks')).toBeTruthy()
