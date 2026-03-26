@@ -1,7 +1,11 @@
 import React from 'react'
 import { render, waitFor } from '@testing-library/react-native'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, notifyManager } from '@tanstack/react-query'
 import { FollowListSheet } from '@/components/profile/FollowListSheet'
+
+// Make tanstack query notify synchronously so React state updates happen
+// inside act() and don't produce act() warnings in tests.
+notifyManager.setScheduler(cb => cb())
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
@@ -68,17 +72,17 @@ describe('FollowListSheet', () => {
     jest.clearAllMocks()
   })
 
-  it('renders the followers title with count', () => {
+  it('renders the followers title with count', async () => {
     const { getByText } = render(<FollowListSheet {...defaultProps} />, { wrapper: makeWrapper() })
-    expect(getByText('Followers · 5')).toBeTruthy()
+    await waitFor(() => expect(getByText('Followers · 5')).toBeTruthy())
   })
 
-  it('renders the following title with count', () => {
+  it('renders the following title with count', async () => {
     const { getByText } = render(
       <FollowListSheet {...defaultProps} type="following" count={3} />,
       { wrapper: makeWrapper() }
     )
-    expect(getByText('Following · 3')).toBeTruthy()
+    await waitFor(() => expect(getByText('Following · 3')).toBeTruthy())
   })
 
   it('renders username after data loads', async () => {

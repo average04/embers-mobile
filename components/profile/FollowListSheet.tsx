@@ -104,6 +104,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
   }, [myFollowsQuery.data])
 
   async function handleToggle(targetId: string, newValue: boolean) {
+    if (!userId) return
     const prev = new Set(myFollowingSet)
     setMyFollowingSet(s => {
       const next = new Set(s)
