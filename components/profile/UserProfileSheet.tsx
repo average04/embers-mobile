@@ -113,6 +113,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
   })
 
   const [isFollowing, setIsFollowing] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (isFollowingQuery.data !== undefined) {
@@ -121,7 +122,8 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
   }, [isFollowingQuery.data])
 
   async function handleToggleFollow() {
-    if (!ownUserId) return
+    if (!ownUserId || submitting) return
+    setSubmitting(true)
     const prev = isFollowing
     setIsFollowing(!isFollowing)
 
@@ -134,6 +136,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
       error = res.error
     }
 
+    setSubmitting(false)
     if (error) {
       setIsFollowing(prev)
       return
@@ -151,7 +154,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
 
   const isLoading = profileQuery.isLoading || followerCountQuery.isLoading ||
     followingCountQuery.isLoading || isFollowingQuery.isLoading
-  const isError = profileQuery.isError
+  const isError = profileQuery.isError || isFollowingQuery.isError
 
   const displayUsername = profileQuery.data?.username ?? username
   const initial = displayUsername.charAt(0).toUpperCase()
@@ -185,6 +188,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
           <TouchableOpacity
             style={[styles.followBtn, isFollowing && styles.followBtnActive]}
             onPress={handleToggleFollow}
+            disabled={submitting}
             activeOpacity={0.7}
           >
             <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>

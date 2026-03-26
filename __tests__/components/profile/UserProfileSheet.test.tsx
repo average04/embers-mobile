@@ -45,16 +45,26 @@ function setupMocks({ isFollowing = false }: { isFollowing?: boolean } = {}) {
         }),
       }
     }
-    // follows table
+    // follows table — handles count queries (head:true) and isFollowing query
     return {
-      select: jest.fn().mockReturnValue({
-        // count query (head:true) returns count
-        eq: jest.fn().mockResolvedValue({ count: 5, error: null }),
-        // maybeSingle for isFollowing
-        maybeSingle: jest.fn().mockResolvedValue({
-          data: isFollowing ? { id: 'f1' } : null,
-          error: null,
-        }),
+      select: jest.fn().mockImplementation((fields: string, opts?: any) => {
+        if (opts?.head) {
+          // count query: .select('id', { count: 'exact', head: true }).eq(...)
+          return {
+            eq: jest.fn().mockResolvedValue({ count: 5, error: null }),
+          }
+        }
+        // isFollowing query: .select('id').eq(...).eq(...).maybeSingle()
+        return {
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              maybeSingle: jest.fn().mockResolvedValue({
+                data: isFollowing ? { id: 'f1' } : null,
+                error: null,
+              }),
+            }),
+          }),
+        }
       }),
       insert: jest.fn().mockResolvedValue({ error: null }),
       delete: jest.fn().mockReturnValue({
@@ -114,5 +124,11 @@ describe('UserProfileSheet', () => {
     fireEvent.press(getByText('View full profile →'))
     expect(router.push).toHaveBeenCalledWith('/user/u1')
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('shows Following button when already following', async () => {
+    setupMocks({ isFollowing: true })
+    const { getByText } = render(<UserProfileSheet {...defaultProps} />, { wrapper: makeWrapper() })
+    await waitFor(() => expect(getByText('Following')).toBeTruthy())
   })
 })
