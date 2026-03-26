@@ -19,6 +19,8 @@ interface Props {
   onClose: () => void
   type: 'followers' | 'following'
   count: number
+  targetUserId?: string   // whose followers/following to show; defaults to own session user
+  tabBarHeight?: number   // forwarded to UserProfileSheet (wired in Task 4); defaults to 0
 }
 
 type UserEntry = { id: string; username: string }
@@ -38,20 +40,21 @@ function SkeletonRow() {
   return <Animated.View style={[styles.skeletonRow, { opacity: anim }]} />
 }
 
-export function FollowListSheet({ visible, onClose, type, count }: Props) {
+export function FollowListSheet({ visible, onClose, type, count, targetUserId, tabBarHeight = 0 }: Props) {
   const insets = useSafeAreaInsets()
   const session = useAuthStore((s) => s.session)
   const queryClient = useQueryClient()
-  const userId = session?.user.id
+  const ownUserId = session?.user.id
+  const viewedUserId = targetUserId ?? ownUserId
 
   const listQuery = useQuery<UserEntry[]>({
-    queryKey: [type === 'followers' ? 'followersList' : 'followingList', userId],
+    queryKey: [type === 'followers' ? 'followersList' : 'followingList', viewedUserId],
     queryFn: async () => {
       if (type === 'followers') {
         const { data: follows, error: e1 } = await supabase
           .from('follows')
           .select('follower_id')
-          .eq('following_id', userId!)
+          .eq('following_id', viewedUserId!)
         if (e1) throw e1
         const ids = (follows ?? []).map((f: any) => f.follower_id)
         if (ids.length === 0) return []
@@ -65,7 +68,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
         const { data: follows, error: e1 } = await supabase
           .from('follows')
           .select('following_id')
-          .eq('follower_id', userId!)
+          .eq('follower_id', viewedUserId!)
         if (e1) throw e1
         const ids = (follows ?? []).map((f: any) => f.following_id)
         if (ids.length === 0) return []
@@ -77,21 +80,21 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
         return (profiles ?? []) as UserEntry[]
       }
     },
-    enabled: visible && !!userId,
+    enabled: visible && !!viewedUserId,
     staleTime: 30_000,
   })
 
   const myFollowsQuery = useQuery<Set<string>>({
-    queryKey: ['myFollows', userId],
+    queryKey: ['myFollows', ownUserId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('follows')
         .select('following_id')
-        .eq('follower_id', userId!)
+        .eq('follower_id', ownUserId!)
       if (error) throw error
       return new Set((data ?? []).map((r: any) => r.following_id))
     },
-    enabled: visible && !!userId,
+    enabled: visible && !!ownUserId,
     staleTime: 30_000,
   })
 
@@ -104,7 +107,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
   }, [myFollowsQuery.data])
 
   async function handleToggle(targetId: string, newValue: boolean) {
-    if (!userId) return
+    if (!ownUserId) return
     const prev = new Set(myFollowingSet)
     setMyFollowingSet(s => {
       const next = new Set(s)
@@ -117,13 +120,13 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
     if (newValue) {
       const res = await supabase
         .from('follows')
-        .insert({ follower_id: userId!, following_id: targetId })
+        .insert({ follower_id: ownUserId, following_id: targetId })
       error = res.error
     } else {
       const res = await supabase
         .from('follows')
         .delete()
-        .eq('follower_id', userId!)
+        .eq('follower_id', ownUserId)
         .eq('following_id', targetId)
       error = res.error
     }
@@ -133,11 +136,18 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
       return
     }
 
-    queryClient.invalidateQueries({ queryKey: ['followerCount', userId] })
-    queryClient.invalidateQueries({ queryKey: ['followingCount', userId] })
-    queryClient.invalidateQueries({ queryKey: ['followersList', userId] })
-    queryClient.invalidateQueries({ queryKey: ['followingList', userId] })
-    queryClient.invalidateQueries({ queryKey: ['myFollows', userId] })
+    queryClient.invalidateQueries({ queryKey: ['followerCount', ownUserId] })
+    queryClient.invalidateQueries({ queryKey: ['followingCount', ownUserId] })
+    queryClient.invalidateQueries({ queryKey: ['followersList', ownUserId] })
+    queryClient.invalidateQueries({ queryKey: ['followingList', ownUserId] })
+    queryClient.invalidateQueries({ queryKey: ['myFollows', ownUserId] })
+    // Also invalidate for the viewed user's lists when viewing someone else's profile
+    if (viewedUserId && viewedUserId !== ownUserId) {
+      queryClient.invalidateQueries({ queryKey: ['followersList', viewedUserId] })
+      queryClient.invalidateQueries({ queryKey: ['followingList', viewedUserId] })
+      queryClient.invalidateQueries({ queryKey: ['followerCount', viewedUserId] })
+      queryClient.invalidateQueries({ queryKey: ['followingCount', viewedUserId] })
+    }
   }
 
   const title = type === 'followers' ? `Followers · ${count}` : `Following · ${count}`
@@ -167,6 +177,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
           username={user.username}
           isFollowing={myFollowingSet.has(user.id)}
           onToggle={handleToggle}
+          // onUsernamePress wired in Task 4 after UserProfileSheet is created
         />
         {index < listQuery.data!.length - 1 && <View style={styles.separator} />}
       </React.Fragment>

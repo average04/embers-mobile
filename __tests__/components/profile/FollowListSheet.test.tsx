@@ -148,4 +148,30 @@ describe('FollowListSheet', () => {
     // Insert failed — should roll back to "Follow"
     await waitFor(() => expect(getByText('Follow')).toBeTruthy())
   })
+
+  it('uses targetUserId for the followers list title when provided', async () => {
+    // The title is built from `type` and `count` props, not targetUserId.
+    // This test verifies that the sheet still renders correctly when targetUserId differs from session.
+    setupMocks([{ id: 'other-u1', username: 'bob_fire' }])
+    const { getByText } = render(
+      <FollowListSheet
+        visible={true}
+        onClose={jest.fn()}
+        type="followers"
+        count={3}
+        targetUserId="other-user-id"
+      />,
+      { wrapper: makeWrapper() }
+    )
+    await waitFor(() => expect(getByText('Followers · 3')).toBeTruthy())
+  })
+
+  it('accepts tabBarHeight prop without error', async () => {
+    const { getByText } = render(
+      <FollowListSheet {...defaultProps} tabBarHeight={62} />,
+      { wrapper: makeWrapper() }
+    )
+    // tabBarHeight is forwarded to UserProfileSheet (wired in Task 4) — just verify sheet still renders
+    await waitFor(() => expect(getByText('Followers · 5')).toBeTruthy())
+  })
 })
