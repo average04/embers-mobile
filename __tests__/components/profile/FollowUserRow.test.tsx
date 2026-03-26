@@ -40,4 +40,27 @@ describe('FollowUserRow', () => {
     fireEvent.press(getByText('Following'))
     expect(onToggle).toHaveBeenCalledWith('u1', false)
   })
+
+  it('calls onUsernamePress with userId when username is tapped', () => {
+    const onUsernamePress = jest.fn()
+    const { getByText } = render(
+      <FollowUserRow
+        userId="u1"
+        username="alice"
+        isFollowing={false}
+        onToggle={jest.fn()}
+        onUsernamePress={onUsernamePress}
+      />
+    )
+    fireEvent.press(getByText('@alice'))
+    expect(onUsernamePress).toHaveBeenCalledWith('u1')
+  })
+
+  it('does not make username tappable when onUsernamePress is not provided', () => {
+    const { getByText } = render(
+      <FollowUserRow userId="u1" username="alice" isFollowing={false} onToggle={jest.fn()} />
+    )
+    // username text exists but is not wrapped in TouchableOpacity — pressing it should not throw
+    expect(() => fireEvent.press(getByText('@alice'))).not.toThrow()
+  })
 })

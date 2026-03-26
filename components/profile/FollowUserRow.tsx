@@ -6,9 +6,10 @@ interface Props {
   username: string
   isFollowing: boolean
   onToggle: (userId: string, newValue: boolean) => void
+  onUsernamePress?: (userId: string) => void
 }
 
-export function FollowUserRow({ userId, username, isFollowing, onToggle }: Props) {
+export function FollowUserRow({ userId, username, isFollowing, onToggle, onUsernamePress }: Props) {
   const initial = username.charAt(0).toUpperCase()
   return (
     <View style={styles.row}>
@@ -17,7 +18,13 @@ export function FollowUserRow({ userId, username, isFollowing, onToggle }: Props
           {initial}
         </Text>
       </View>
-      <Text style={styles.username}>@{username}</Text>
+      {onUsernamePress ? (
+        <TouchableOpacity onPress={() => onUsernamePress(userId)} activeOpacity={0.7} style={styles.usernameBtn}>
+          <Text style={styles.username}>@{username}</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={styles.username}>@{username}</Text>
+      )}
       <TouchableOpacity
         style={[styles.btn, isFollowing && styles.btnFollowing]}
         onPress={() => onToggle(userId, !isFollowing)}
@@ -55,16 +62,15 @@ const styles = StyleSheet.create({
   avatarFollowing: { borderColor: '#f97316' },
   avatarInitial: { fontSize: 14, color: '#666' },
   avatarInitialFollowing: { color: '#f97316' },
-  username: { flex: 1, fontSize: 13, color: '#ddd' },
+  usernameBtn: { flex: 1 },
+  username: { fontSize: 13, color: '#ddd' },
   btn: {
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    backgroundColor: '#f97316',
     borderRadius: 6,
     paddingVertical: 5,
     paddingHorizontal: 12,
   },
-  btnFollowing: { backgroundColor: '#f97316', borderColor: '#f97316' },
-  btnText: { fontSize: 11, fontWeight: '600', color: '#888' },
-  btnTextFollowing: { color: '#fff' },
+  btnFollowing: { backgroundColor: '#1a1a1a', borderWidth: 1, borderColor: '#2a2a2a' },
+  btnText: { fontSize: 11, fontWeight: '600', color: '#fff' },
+  btnTextFollowing: { color: '#888' },
 })

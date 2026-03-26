@@ -30,6 +30,8 @@ const ICONS: Record<string, { d: string }> = {
   },
 }
 
+export const TAB_BAR_HEIGHT = 62
+
 export function BottomTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={styles.bar}>
