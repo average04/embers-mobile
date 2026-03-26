@@ -18,7 +18,9 @@ When a user taps a username anywhere in the app (ember attribution, followers/fo
 | Ember attribution | `EmberDetailSheet` line 596 | `ember.user_id`, `ember.username` |
 | Follower/following row | `FollowUserRow` | `userId`, `username` (via new `onUsernamePress` prop) |
 
-If the tapped `userId` equals `session.user.id` (own profile), do nothing — no sheet.
+**Suppression rules — do NOT open the sheet when:**
+- `userId` equals `session.user.id` (own profile)
+- `user_id` is `null` or `undefined` (ember has no attached user — wrap the `TouchableOpacity` only when `ember.user_id` is a non-empty string)
 
 ---
 
@@ -32,8 +34,9 @@ If the tapped `userId` equals `session.user.id` (own profile), do nothing — no
 interface Props {
   visible: boolean
   onClose: () => void
-  userId: string
+  userId: string       // always a non-empty string when visible
   username: string
+  tabBarHeight: number // passed in by the caller — see Positioning section
 }
 ```
 
@@ -43,9 +46,24 @@ interface Props {
 
 ### Positioning — above the tab bar
 
-Use `useBottomTabBarHeight()` from `@react-navigation/bottom-tabs` to get the tab bar height. The sheet's `bottom` is set to this value so it sits directly above the tab bar.
+`useBottomTabBarHeight()` from `@react-navigation/bottom-tabs` provides the tab bar height **only inside screen components** within the tab navigator. `UserProfileSheet` is a generic component that may be rendered inside a Modal (e.g. from `EmberDetailSheet`) where the context may not be available.
 
-The backdrop covers only from the top to the sheet's top edge, not the full screen — achieved by setting `bottom: tabBarHeight` on both the backdrop and the sheet container:
+**Solution:** The app uses a fully custom tab bar (`components/navigation/BottomTabBar.tsx`) that renders as a plain `<View style={{ height: 62 }}>`. It does **not** register with React Navigation's `BottomTabBarHeightContext`, so `useBottomTabBarHeight()` always returns `0` — do not use that hook.
+
+Instead, export a named constant from `BottomTabBar.tsx`:
+
+```ts
+export const TAB_BAR_HEIGHT = 62
+```
+
+Import and use this constant wherever `tabBarHeight` is needed. `UserProfileSheet` accepts it as a prop:
+
+- In `app/(tabs)/map.tsx`: import `TAB_BAR_HEIGHT` and pass it to `EmberDetailSheet` as `tabBarHeight={TAB_BAR_HEIGHT}`. `EmberDetailSheet` is a centered-card Modal (`animationType="fade"`) and does **not** use `tabBarHeight` itself — it simply passes it straight through to `UserProfileSheet`.
+- In `components/profile/FollowListSheet.tsx`: add `tabBarHeight?: number` (optional, defaults to `0`) so it can forward the value to `UserProfileSheet`. Existing call sites in `profile.tsx` pass no value; `0` is the safe default there since `FollowListSheet` is a full-screen Modal itself.
+- In `app/(tabs)/profile.tsx`: no change needed.
+- In `app/user/[id].tsx`: import `TAB_BAR_HEIGHT` and pass it to `FollowListSheet` as `tabBarHeight={TAB_BAR_HEIGHT}`.
+
+The backdrop covers content but stops at the tab bar. The sheet slides up to sit directly above the tab bar:
 
 ```tsx
 <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -56,28 +74,32 @@ The backdrop covers only from the top to the sheet's top edge, not the full scre
     onPress={onClose}
   />
   {/* Sheet — sits above tab bar */}
-  <View style={[styles.sheet, { bottom: tabBarHeight, paddingBottom: insets.bottom > 0 ? 8 : 16 }]}>
+  <View style={[styles.sheet, { bottom: tabBarHeight }]}>
     ...
   </View>
 </Modal>
 ```
 
-### Queries (enabled only when `visible === true`)
+`paddingBottom` inside the sheet: `16` (fixed, no safe area adjustment needed since the sheet does not extend to the screen bottom).
+
+### Queries (enabled only when `visible === true && !!userId && !!session`)
+
+**Avatars are initial-text only.** The `profiles` table has no `avatar_url` column — do not select or reference it anywhere in this feature.
 
 ```ts
-// Profile info
+// Profile info (includes embers_hidden for later use on public profile)
 queryKey: ['userProfile', userId]
 queryFn: async () => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, username, created_at')
+    .select('id, username, created_at, embers_hidden')
     .eq('id', userId)
     .single()
   if (error) throw error
-  return data as { id: string; username: string; created_at: string }
+  return data as { id: string; username: string; created_at: string; embers_hidden: boolean }
 }
 
-// Follower count
+// Follower count for target user
 queryKey: ['followerCount', userId]
 queryFn: async () => {
   const { count, error } = await supabase
@@ -88,7 +110,7 @@ queryFn: async () => {
   return count ?? 0
 }
 
-// Following count
+// Following count for target user
 queryKey: ['followingCount', userId]
 queryFn: async () => {
   const { count, error } = await supabase
@@ -113,18 +135,23 @@ queryFn: async () => {
 }
 ```
 
-All four: `enabled: visible && !!userId && !!session`, `staleTime: 30_000`.
+All four: `staleTime: 30_000`.
 
 ### Optimistic follow state
 
-Same pattern as `FollowListSheet` — local `isFollowing` boolean state initialized from query, optimistic toggle with rollback on error.
+Local `isFollowing` boolean state initialized from the `isFollowing` query result via `useEffect`. Optimistic toggle with rollback on error — same pattern as `FollowListSheet`.
 
-On success, invalidate:
-- `['followerCount', userId]`
-- `['followingCount', userId]`
+On successful follow/unfollow, invalidate:
+- `['followerCount', userId]` — target's follower count
+- `['followingCount', userId]` — target's following count
 - `['isFollowing', session.user.id, userId]`
-- `['followerCount', session.user.id]` (own counts may change)
+- `['followerCount', session.user.id]` — own following count changes
 - `['followingCount', session.user.id]`
+- `['followersList', userId]` — in case FollowListSheet is open on target's profile
+- `['followingList', userId]`
+- `['myFollows', session.user.id]`
+
+> `FollowListSheet.handleToggle` (after the `targetUserId` change) must also invalidate `['followersList', viewedUserId]` and `['followingList', viewedUserId]` in addition to existing keys, so a follow/unfollow from within someone else's follower list refreshes that list.
 
 ### Layout
 
@@ -139,22 +166,21 @@ On success, invalidate:
 [         View full profile →         ]
 ```
 
-- Avatar: 54×54 circle, `#f97316` border 2px, initial text `#f97316`
+- Avatar: 54×54 circle, `#1a1a1a` background, `#f97316` border 2px, initial text `#f97316` 22px
 - Username: 15px, `#fff`, fontWeight 700
 - Counts: 11px, `#888`, numbers in `#ccc` fontWeight 600
-- Follow button: same pill style as `FollowUserRow`
-- "View full profile →" button: full-width, `background: #161616`, `borderColor: #222`, `#aaa` text, calls `router.push('/user/' + userId)` then `onClose()`
-- Loading: show skeleton — grey rectangle 54px avatar + two grey text bars, no button
-- Error: centered "couldn't load" text only (no retry — sheet is lightweight)
+- Follow button: same pill style as `FollowUserRow` (orange bg + white text when not following; grey bg + grey text when following)
+- "View full profile →" button: full-width, `background: #161616`, `borderWidth: 1`, `borderColor: #222`, 13px `#aaa` text, calls `router.push('/user/' + userId)` then `onClose()`
+- **Loading:** skeleton — grey oval 54px + two grey text bars, no button
+- **Error:** centered "couldn't load" in `#3a3a4a`, no retry (sheet is lightweight)
 
 ### Sheet style
 
 - `background: #111111`
 - `borderTopLeftRadius: 18`, `borderTopRightRadius: 18`
 - `borderTopWidth: 1`, `borderColor: #1e1e1e`
-- `paddingTop: 14`
-- `paddingHorizontal: 20`
-- Does NOT use `maxHeight` (content is fixed height, no scroll needed)
+- `paddingTop: 14`, `paddingBottom: 16`, `paddingHorizontal: 20`
+- No `maxHeight` — content is fixed height, no scroll needed
 
 ---
 
@@ -162,22 +188,28 @@ On success, invalidate:
 
 `app/user/[id].tsx`
 
-Dynamic route. `id` param is the target user's UUID.
+Dynamic route. `id` param is the target user's UUID. No `_layout.tsx` needed in `app/user/` — Expo Router uses the root `_layout.tsx` and treats this as a stack route (pushes on top of current navigator). Back navigation uses `router.back()`.
 
-### Header
+### Back row
 
-Stack header with back button (Expo Router default back button). Title: `@username` (shown once profile loads, placeholder `…` while loading).
+Custom back row at the top of the `ScrollView` (not a stack header — this app has no other screens using Expo Router stack headers):
 
-Or: use a custom back row at the top of the scroll view (same approach as the rest of the app if stack headers are not used). Follow the existing pattern in the codebase — check how other screens handle back navigation.
+```tsx
+<TouchableOpacity style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
+  <Text style={styles.backChevron}>‹</Text>
+  <Text style={styles.backUsername}>@{profileQuery.data?.username ?? '…'}</Text>
+</TouchableOpacity>
+```
 
 ### Queries
 
-Same four as `UserProfileSheet` (profile, followerCount, followingCount, isFollowing), always enabled (not gated on `visible`).
+Same four as `UserProfileSheet` (userProfile, followerCount, followingCount, isFollowing), always enabled (`enabled: !!userId && !!session`).
 
 Additionally:
 ```ts
 // Embers
 queryKey: ['userEmbers', userId]
+enabled: !!userId && profileQuery.data?.embers_hidden === false
 queryFn: async () => {
   const { data, error } = await supabase
     .from('embers')
@@ -185,11 +217,12 @@ queryFn: async () => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as ProfileEmber[]
 }
 
 // Blue embers
 queryKey: ['userBlueEmbers', userId]
+enabled: !!userId && profileQuery.data?.embers_hidden === false
 queryFn: async () => {
   const { data, error } = await supabase
     .from('blue_embers')
@@ -197,42 +230,56 @@ queryFn: async () => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
   if (error) throw error
-  return data ?? []
+  return (data ?? []) as ProfileBlueEmber[]
 }
 ```
 
-Ember/blue ember queries: `enabled: !!userId && profileQuery.data?.embers_hidden === false`.
-
-> **Note:** `embers_hidden` must be included in the profile query: `.select('id, username, created_at, embers_hidden')`.
+**Ember query gate:** `enabled: !!userId && profileQuery.data?.embers_hidden === false`. While `profileQuery` is loading, `profileQuery.data` is `undefined` → ember queries stay disabled (correct). If `profileQuery` errors, `profileQuery.data` stays `undefined` → show `profileQuery.isError` error state in the ember tab area (centered "couldn't load profile").
 
 ### Layout
 
 ```
-← @username                          (header / back row)
+‹ @username                          (custom back row)
 
 [ 64×64 avatar ]
 @username
-X followers · Y following            (tappable — opens FollowListSheet)
+X followers · Y following            (both tappable — opens FollowListSheet)
 member since [month year]
-[ Follow / Following button ]
+[ Follow / Following button ]        (hidden if userId === session.user.id)
 
 ━━━━━━━━ EMBERS │ BLUE EMBERS ━━━━━━
 
-[ember cards]
-— or —
-[skeleton / empty / "embers are private"]
+[ember cards / skeleton / empty / private / error]
 ```
 
-- Same tab pattern (EMBERS / BLUE EMBERS) and ember card components as own profile
-- Follow button: full-width, orange if not following, grey outline if following
-- If `embers_hidden === true`: both tabs show `"this user's embers are private"` (no cards, no skeleton)
-- If own userId: hide follow button, show nothing in its place
+- Avatar: 64×64 circle, `#1a1a1a` background, `#f97316` border 2px, initial text `#f97316` 26px
+- Follow button: full-width, same visual states as `FollowUserRow` pill but full-width with `paddingVertical: 10`
+- `embers_hidden === true`: both tabs show centered `"this user's embers are private"` (`#3a3a4a`)
+- `profileQuery.isError`: show centered "couldn't load profile" in the content area, no tabs
+- `profileQuery.isLoading`: show skeleton header + 3 skeleton cards
+- Own userId (`userId === session.user.id`): hide follow button
+- `embers_hidden === true`: "this user's embers are private" shows even when viewing your own public profile — no bypass. The public profile screen always shows the public view.
 
-### `FollowListSheet` reuse
+### `FollowListSheet` on public profile
 
-The followers/following counts are tappable, opening `FollowListSheet` with the target user's `userId` — same component, passing `userId` as a prop instead of always using `session.user.id`.
+Tap followers/following count → open `FollowListSheet` with `targetUserId` prop set to the target user's ID. Uses the same `FollowListSheet` component with the extended prop described below.
 
-> **Schema note:** `FollowListSheet` currently hardcodes `session.user.id` for all queries. To support viewing another user's profile, the sheet needs a `targetUserId` prop (defaults to `session.user.id` for own profile).
+---
+
+## FollowListSheet Changes
+
+Add optional `targetUserId?: string` prop. When provided, all query keys and query functions use `targetUserId` instead of `session.user.id`:
+
+```ts
+const viewedUserId = targetUserId ?? session?.user.id
+queryKey: ['followersList', viewedUserId]
+queryKey: ['followingList', viewedUserId]
+queryKey: ['myFollows', session?.user.id]  // always own ID — needed for follow button state
+```
+
+The `myFollows` query always uses `session.user.id` (it tells us who WE follow, regardless of whose profile we're viewing). The list queries use `viewedUserId`.
+
+**Backward compatibility:** existing call sites in `app/(tabs)/profile.tsx` pass no `targetUserId`, so `viewedUserId` falls back to `session.user.id` — no change in behavior.
 
 ---
 
@@ -240,11 +287,14 @@ The followers/following counts are tappable, opening `FollowListSheet` with the 
 
 | File | Change |
 |---|---|
-| `components/profile/FollowUserRow.tsx` | Add optional `onUsernamePress?: (userId: string) => void` prop; wrap `@username` Text in `TouchableOpacity` when prop is provided |
-| `components/ember/EmberDetailSheet.tsx` | Wrap `— @username` Text in `TouchableOpacity`; add `userProfileVisible` state + `UserProfileSheet` |
-| `components/profile/FollowListSheet.tsx` | Add optional `targetUserId?: string` prop (defaults to `session.user.id`) so it can show another user's followers |
 | `components/profile/UserProfileSheet.tsx` | New component |
 | `app/user/[id].tsx` | New screen |
+| `components/profile/FollowUserRow.tsx` | Add optional `onUsernamePress?: (userId: string) => void`; wrap `@username` in `TouchableOpacity` when prop provided |
+| `components/ember/EmberDetailSheet.tsx` | Accept `tabBarHeight: number` prop (pass-through only — not used by EmberDetailSheet itself); make `— @username` tappable when `ember.user_id` is non-empty string and not own; render `UserProfileSheet` |
+| `components/profile/FollowListSheet.tsx` | Add optional `targetUserId?: string` and `tabBarHeight?: number` (defaults to `0`) props; use `viewedUserId` in list query keys/fns; update `handleToggle` invalidations to include `viewedUserId` list keys; pass `onUsernamePress` to `FollowUserRow` only when `user.id !== session.user.id` (own-profile suppression); forward `tabBarHeight` to `UserProfileSheet` |
+| `components/navigation/BottomTabBar.tsx` | Export `TAB_BAR_HEIGHT = 62` constant |
+| `app/(tabs)/map.tsx` | Import `TAB_BAR_HEIGHT`; pass `tabBarHeight={TAB_BAR_HEIGHT}` to `EmberDetailSheet` |
+| `app/(tabs)/profile.tsx` | No query changes; `FollowListSheet` call unchanged (no `targetUserId` needed for own profile) |
 
 ---
 
