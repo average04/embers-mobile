@@ -40,7 +40,7 @@ function SkeletonRow() {
   return <Animated.View style={[styles.skeletonRow, { opacity: anim }]} />
 }
 
-export function FollowListSheet({ visible, onClose, type, count, targetUserId, tabBarHeight = 0 }: Props) {
+export function FollowListSheet({ visible, onClose, type, count, targetUserId, tabBarHeight: _tabBarHeight = 0 }: Props) {
   const insets = useSafeAreaInsets()
   const session = useAuthStore((s) => s.session)
   const queryClient = useQueryClient()

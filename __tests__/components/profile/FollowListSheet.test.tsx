@@ -149,9 +149,7 @@ describe('FollowListSheet', () => {
     await waitFor(() => expect(getByText('Follow')).toBeTruthy())
   })
 
-  it('uses targetUserId for the followers list title when provided', async () => {
-    // The title is built from `type` and `count` props, not targetUserId.
-    // This test verifies that the sheet still renders correctly when targetUserId differs from session.
+  it('queries followers for targetUserId when provided', async () => {
     setupMocks([{ id: 'other-u1', username: 'bob_fire' }])
     const { getByText } = render(
       <FollowListSheet
@@ -163,7 +161,7 @@ describe('FollowListSheet', () => {
       />,
       { wrapper: makeWrapper() }
     )
-    await waitFor(() => expect(getByText('Followers · 3')).toBeTruthy())
+    await waitFor(() => expect(getByText('@bob_fire')).toBeTruthy())
   })
 
   it('accepts tabBarHeight prop without error', async () => {
