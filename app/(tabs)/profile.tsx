@@ -9,7 +9,7 @@ import {
   Image,
   Animated,
 } from 'react-native'
-import Svg, { Path } from 'react-native-svg'
+import Svg, { Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/authStore'
@@ -126,6 +126,17 @@ export default function ProfileTab() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Hero header */}
         <View style={styles.hero}>
+          <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+            <Svg width="100%" height="100%" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+              <Defs>
+                <RadialGradient id="heroGlow" cx="50%" cy="0%" r="70%">
+                  <Stop offset="0%" stopColor="#ff8c32" stopOpacity="0.13" />
+                  <Stop offset="100%" stopColor="#ff8c32" stopOpacity="0" />
+                </RadialGradient>
+              </Defs>
+              <Rect x="0" y="0" width="400" height="260" fill="url(#heroGlow)" />
+            </Svg>
+          </View>
           {/* Gear button */}
           <TouchableOpacity style={styles.gearBtn} onPress={() => setSettingsOpen(true)} activeOpacity={0.7}>
             <Svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
