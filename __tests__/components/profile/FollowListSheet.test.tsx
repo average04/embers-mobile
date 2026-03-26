@@ -38,6 +38,7 @@ function setupMocks(users: { id: string; username: string }[]) {
     return {
       select: jest.fn().mockReturnValue({
         eq: jest.fn().mockResolvedValue({
+          // Both fields set: followers list reads .follower_id, following list and myFollows read .following_id
           data: users.map(u => ({ follower_id: u.id, following_id: u.id })),
           error: null,
         }),

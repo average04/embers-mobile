@@ -159,7 +159,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
     if (!listQuery.data?.length) {
       return <View style={styles.centered}><Text style={styles.emptyText}>{emptyMsg}</Text></View>
     }
-    return listQuery.data.map(user => (
+    return listQuery.data.map((user, index) => (
       <React.Fragment key={user.id}>
         <FollowUserRow
           userId={user.id}
@@ -167,7 +167,7 @@ export function FollowListSheet({ visible, onClose, type, count }: Props) {
           isFollowing={myFollowingSet.has(user.id)}
           onToggle={handleToggle}
         />
-        <View style={styles.separator} />
+        {index < listQuery.data!.length - 1 && <View style={styles.separator} />}
       </React.Fragment>
     ))
   }
