@@ -100,6 +100,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
   })
 
   const [myFollowingSet, setMyFollowingSet] = useState<Set<string>>(new Set())
+  const [pendingToggles, setPendingToggles] = useState<Set<string>>(new Set())
   const [quickViewUserId, setQuickViewUserId] = useState<string | null>(null)
   const [quickViewUsername, setQuickViewUsername] = useState('')
 
@@ -110,7 +111,8 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
   }, [myFollowsQuery.data])
 
   async function handleToggle(targetId: string, newValue: boolean) {
-    if (!ownUserId) return
+    if (!ownUserId || pendingToggles.has(targetId)) return
+    setPendingToggles(s => new Set([...s, targetId]))
     const prev = new Set(myFollowingSet)
     setMyFollowingSet(s => {
       const next = new Set(s)
@@ -134,6 +136,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
       error = res.error
     }
 
+    setPendingToggles(s => { const next = new Set(s); next.delete(targetId); return next })
     if (error) {
       setMyFollowingSet(prev)
       return
@@ -144,7 +147,6 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
     queryClient.invalidateQueries({ queryKey: ['followersList', ownUserId] })
     queryClient.invalidateQueries({ queryKey: ['followingList', ownUserId] })
     queryClient.invalidateQueries({ queryKey: ['myFollows', ownUserId] })
-    // Also invalidate for the viewed user's lists when viewing someone else's profile
     if (viewedUserId && viewedUserId !== ownUserId) {
       queryClient.invalidateQueries({ queryKey: ['followersList', viewedUserId] })
       queryClient.invalidateQueries({ queryKey: ['followingList', viewedUserId] })

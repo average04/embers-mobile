@@ -122,7 +122,7 @@ describe('UserProfileSheet', () => {
     )
     await waitFor(() => expect(getByText('View full profile →')).toBeTruthy())
     fireEvent.press(getByText('View full profile →'))
-    expect(router.push).toHaveBeenCalledWith('/user/u1')
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/user/[id]', params: { id: 'u1' } })
     expect(onClose).toHaveBeenCalled()
   })
 

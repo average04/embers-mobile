@@ -199,7 +199,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
         <View style={styles.divider} />
         <TouchableOpacity
           style={styles.viewProfileBtn}
-          onPress={() => { router.push('/user/' + userId); onClose() }}
+          onPress={() => { router.push({ pathname: '/user/[id]', params: { id: userId } }); onClose() }}
           activeOpacity={0.7}
         >
           <Text style={styles.viewProfileText}>View full profile →</Text>
