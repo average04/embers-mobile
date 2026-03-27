@@ -186,6 +186,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
             setQuickViewUserId(id)
             setQuickViewUsername(user.username)
           } : undefined}
+          hideFollowButton={user.id === ownUserId}
         />
         {index < listQuery.data!.length - 1 && <View style={styles.separator} />}
       </React.Fragment>

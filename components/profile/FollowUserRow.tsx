@@ -7,9 +7,10 @@ interface Props {
   isFollowing: boolean
   onToggle: (userId: string, newValue: boolean) => void
   onUsernamePress?: (userId: string) => void
+  hideFollowButton?: boolean
 }
 
-export function FollowUserRow({ userId, username, isFollowing, onToggle, onUsernamePress }: Props) {
+export function FollowUserRow({ userId, username, isFollowing, onToggle, onUsernamePress, hideFollowButton }: Props) {
   const initial = username.charAt(0).toUpperCase()
   return (
     <View style={styles.row}>
@@ -25,17 +26,19 @@ export function FollowUserRow({ userId, username, isFollowing, onToggle, onUsern
       ) : (
         <Text style={styles.username}>@{username}</Text>
       )}
-      <TouchableOpacity
-        style={[styles.btn, isFollowing && styles.btnFollowing]}
-        onPress={() => onToggle(userId, !isFollowing)}
-        activeOpacity={0.7}
-        accessibilityLabel={isFollowing ? `Unfollow ${username}` : `Follow ${username}`}
-        accessibilityRole="button"
-      >
-        <Text style={[styles.btnText, isFollowing && styles.btnTextFollowing]}>
-          {isFollowing ? 'Following' : 'Follow'}
-        </Text>
-      </TouchableOpacity>
+      {!hideFollowButton && (
+        <TouchableOpacity
+          style={[styles.btn, isFollowing && styles.btnFollowing]}
+          onPress={() => onToggle(userId, !isFollowing)}
+          activeOpacity={0.7}
+          accessibilityLabel={isFollowing ? `Unfollow ${username}` : `Follow ${username}`}
+          accessibilityRole="button"
+        >
+          <Text style={[styles.btnText, isFollowing && styles.btnTextFollowing]}>
+            {isFollowing ? 'Following' : 'Follow'}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
