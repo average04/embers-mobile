@@ -115,6 +115,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
 
   const [isFollowing, setIsFollowing] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [avatarVisible, setAvatarVisible] = useState(false)
 
   useEffect(() => {
     if (isFollowingQuery.data !== undefined) {
@@ -174,13 +175,17 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
     return (
       <>
         <View style={styles.userRow}>
-          <View style={styles.avatar}>
+          <TouchableOpacity
+            onPress={profileQuery.data?.avatar_url ? () => setAvatarVisible(true) : undefined}
+            activeOpacity={profileQuery.data?.avatar_url ? 0.8 : 1}
+            style={styles.avatar}
+          >
             {profileQuery.data?.avatar_url ? (
               <Image source={{ uri: profileQuery.data.avatar_url }} style={styles.avatarImg} />
             ) : (
               <Text style={styles.avatarInitial}>{initial}</Text>
             )}
-          </View>
+          </TouchableOpacity>
           <View style={styles.userInfo}>
             <Text style={styles.username}>@{displayUsername}</Text>
             <Text style={styles.counts}>
@@ -224,6 +229,13 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
         <View style={styles.handle} />
         {renderContent()}
       </View>
+      {profileQuery.data?.avatar_url && (
+        <Modal visible={avatarVisible} transparent animationType="fade" onRequestClose={() => setAvatarVisible(false)}>
+          <TouchableOpacity style={styles.avatarModalBackdrop} activeOpacity={1} onPress={() => setAvatarVisible(false)}>
+            <Image source={{ uri: profileQuery.data.avatar_url }} style={styles.avatarModalImg} resizeMode="contain" />
+          </TouchableOpacity>
+        </Modal>
+      )}
     </Modal>
   )
 }
@@ -275,6 +287,13 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   avatarImg: { width: 54, height: 54, borderRadius: 27 },
+  avatarModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarModalImg: { width: '90%', height: '70%' },
   avatarInitial: { fontSize: 22, color: '#f97316' },
   userInfo: { flex: 1 },
   username: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 3 },
