@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import {
   View,
   Text,
-  Image,
-  Modal,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -17,7 +15,7 @@ import { BlueEmberCard, type ProfileBlueEmber } from '@/components/profile/BlueE
 import { FollowListSheet } from '@/components/profile/FollowListSheet'
 import { TAB_BAR_HEIGHT } from '@/components/navigation/BottomTabBar'
 
-type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean; avatar_url: string | null }
+type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean }
 type ActiveTab = 'embers' | 'blue'
 
 export default function UserProfileScreen() {
@@ -29,14 +27,13 @@ export default function UserProfileScreen() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('embers')
   const [followListType, setFollowListType] = useState<'followers' | 'following' | null>(null)
-  const [avatarVisible, setAvatarVisible] = useState(false)
 
   const profileQuery = useQuery<UserProfile>({
     queryKey: ['userProfile', userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, created_at, embers_hidden, avatar_url')
+        .select('id, username, created_at, embers_hidden')
         .eq('id', userId)
         .single()
       if (error) throw error
@@ -224,17 +221,9 @@ export default function UserProfileScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <TouchableOpacity
-            onPress={profile?.avatar_url ? () => setAvatarVisible(true) : undefined}
-            activeOpacity={profile?.avatar_url ? 0.8 : 1}
-            style={styles.avatarWrap}
-          >
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
-            ) : (
-              <Text style={styles.avatarInitial}>{initial}</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.avatarWrap}>
+            <Text style={styles.avatarInitial}>{initial}</Text>
+          </View>
           <Text style={styles.username}>@{username}</Text>
 
           {/* Followers/following counts */}
@@ -297,13 +286,6 @@ export default function UserProfileScreen() {
         targetUserId={userId}
         tabBarHeight={TAB_BAR_HEIGHT}
       />
-      {profile?.avatar_url && (
-        <Modal visible={avatarVisible} transparent animationType="fade" onRequestClose={() => setAvatarVisible(false)}>
-          <TouchableOpacity style={styles.avatarModalBackdrop} activeOpacity={1} onPress={() => setAvatarVisible(false)}>
-            <Image source={{ uri: profile.avatar_url }} style={styles.avatarModalImg} resizeMode="contain" />
-          </TouchableOpacity>
-        </Modal>
-      )}
     </View>
   )
 }
@@ -337,14 +319,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  avatarImg: { width: 64, height: 64, borderRadius: 32 },
-  avatarModalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarModalImg: { width: '90%', height: '70%' },
   avatarInitial: { fontSize: 26, color: '#f97316' },
   username: { fontSize: 17, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
   followRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
