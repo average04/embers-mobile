@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -15,7 +16,7 @@ import { BlueEmberCard, type ProfileBlueEmber } from '@/components/profile/BlueE
 import { FollowListSheet } from '@/components/profile/FollowListSheet'
 import { TAB_BAR_HEIGHT } from '@/components/navigation/BottomTabBar'
 
-type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean }
+type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean; avatar_url: string | null }
 type ActiveTab = 'embers' | 'blue'
 
 export default function UserProfileScreen() {
@@ -33,7 +34,7 @@ export default function UserProfileScreen() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, created_at, embers_hidden')
+        .select('id, username, created_at, embers_hidden, avatar_url')
         .eq('id', userId)
         .single()
       if (error) throw error
@@ -222,7 +223,11 @@ export default function UserProfileScreen() {
         {/* Hero */}
         <View style={styles.hero}>
           <View style={styles.avatarWrap}>
-            <Text style={styles.avatarInitial}>{initial}</Text>
+            {profile?.avatar_url ? (
+              <Image source={{ uri: profile.avatar_url }} style={styles.avatarImg} />
+            ) : (
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            )}
           </View>
           <Text style={styles.username}>@{username}</Text>
 
@@ -319,6 +324,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
+  avatarImg: { width: 64, height: 64, borderRadius: 32 },
   avatarInitial: { fontSize: 26, color: '#f97316' },
   username: { fontSize: 17, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
   followRow: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
