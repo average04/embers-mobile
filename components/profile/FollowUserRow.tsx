@@ -1,23 +1,28 @@
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 
 interface Props {
   userId: string
   username: string
   isFollowing: boolean
   onToggle: (userId: string, newValue: boolean) => void
+  avatarUrl?: string | null
   onUsernamePress?: (userId: string) => void
   hideFollowButton?: boolean
 }
 
-export function FollowUserRow({ userId, username, isFollowing, onToggle, onUsernamePress, hideFollowButton }: Props) {
+export function FollowUserRow({ userId, username, isFollowing, onToggle, avatarUrl, onUsernamePress, hideFollowButton }: Props) {
   const initial = username.charAt(0).toUpperCase()
   return (
     <View style={styles.row}>
       <View style={[styles.avatar, isFollowing && styles.avatarFollowing]}>
-        <Text style={[styles.avatarInitial, isFollowing && styles.avatarInitialFollowing]}>
-          {initial}
-        </Text>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatarImg} />
+        ) : (
+          <Text style={[styles.avatarInitial, isFollowing && styles.avatarInitialFollowing]}>
+            {initial}
+          </Text>
+        )}
       </View>
       {onUsernamePress ? (
         <TouchableOpacity onPress={() => onUsernamePress(userId)} activeOpacity={0.7} style={styles.usernameBtn}>
@@ -63,6 +68,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   avatarFollowing: { borderColor: '#f97316' },
+  avatarImg: { width: 36, height: 36, borderRadius: 18 },
   avatarInitial: { fontSize: 14, color: '#666' },
   avatarInitialFollowing: { color: '#f97316' },
   usernameBtn: { flex: 1 },

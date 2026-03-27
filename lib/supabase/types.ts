@@ -15,6 +15,7 @@ export type Database = {
           updated_at: string
           embers_hidden: boolean
           is_moderator: boolean
+          avatar_url: string | null
         }
         Insert: {
           id: string
@@ -23,6 +24,7 @@ export type Database = {
           updated_at?: string
           embers_hidden?: boolean
           is_moderator?: boolean
+          avatar_url?: string | null
         }
         Update: {
           id?: string
@@ -31,6 +33,7 @@ export type Database = {
           updated_at?: string
           embers_hidden?: boolean
           is_moderator?: boolean
+          avatar_url?: string | null
         }
         Relationships: [
           {

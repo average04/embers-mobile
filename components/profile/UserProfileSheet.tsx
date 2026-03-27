@@ -3,6 +3,7 @@ import {
   Modal,
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   Animated,
@@ -20,7 +21,7 @@ interface Props {
   tabBarHeight: number
 }
 
-type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean }
+type UserProfile = { id: string; username: string; created_at: string; embers_hidden: boolean; avatar_url: string | null }
 
 function SkeletonSheet() {
   const anim = React.useRef(new Animated.Value(0.4)).current
@@ -58,7 +59,7 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, created_at, embers_hidden')
+        .select('id, username, created_at, embers_hidden, avatar_url')
         .eq('id', userId)
         .single()
       if (error) throw error
@@ -174,7 +175,11 @@ export function UserProfileSheet({ visible, onClose, userId, username, tabBarHei
       <>
         <View style={styles.userRow}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarInitial}>{initial}</Text>
+            {profileQuery.data?.avatar_url ? (
+              <Image source={{ uri: profileQuery.data.avatar_url }} style={styles.avatarImg} />
+            ) : (
+              <Text style={styles.avatarInitial}>{initial}</Text>
+            )}
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.username}>@{displayUsername}</Text>
@@ -269,6 +274,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
+  avatarImg: { width: 54, height: 54, borderRadius: 27 },
   avatarInitial: { fontSize: 22, color: '#f97316' },
   userInfo: { flex: 1 },
   username: { fontSize: 15, fontWeight: '700', color: '#fff', marginBottom: 3 },

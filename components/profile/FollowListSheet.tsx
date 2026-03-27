@@ -24,7 +24,7 @@ interface Props {
   tabBarHeight?: number   // forwarded to UserProfileSheet (wired in Task 4); defaults to 0
 }
 
-type UserEntry = { id: string; username: string }
+type UserEntry = { id: string; username: string; avatar_url: string | null }
 
 function SkeletonRow() {
   const anim = React.useRef(new Animated.Value(0.4)).current
@@ -61,7 +61,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
         if (ids.length === 0) return []
         const { data: profiles, error: e2 } = await supabase
           .from('profiles')
-          .select('id, username')
+          .select('id, username, avatar_url')
           .in('id', ids)
         if (e2) throw e2
         return (profiles ?? []) as UserEntry[]
@@ -75,7 +75,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
         if (ids.length === 0) return []
         const { data: profiles, error: e2 } = await supabase
           .from('profiles')
-          .select('id, username')
+          .select('id, username, avatar_url')
           .in('id', ids)
         if (e2) throw e2
         return (profiles ?? []) as UserEntry[]
@@ -182,6 +182,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
           username={user.username}
           isFollowing={myFollowingSet.has(user.id)}
           onToggle={handleToggle}
+          avatarUrl={user.avatar_url}
           onUsernamePress={user.id !== ownUserId ? (id) => {
             setQuickViewUserId(id)
             setQuickViewUsername(user.username)
