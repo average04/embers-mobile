@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMapStore, type Region } from '@/store/mapStore'
 import { useMapEmbers, type MapEmber, type MapBlueEmber } from '@/hooks/useMapEmbers'
 import { EmberDetailSheet } from '@/components/ember/EmberDetailSheet'
+import { TAB_BAR_HEIGHT } from '@/components/navigation/BottomTabBar'
 import { BlueEmberDetailSheet } from '@/components/ember/BlueEmberDetailSheet'
 import { LocationSearch } from '@/components/map/LocationSearch'
 import { supabase } from '@/lib/supabase/client'
@@ -264,7 +265,7 @@ export default function MapScreen() {
       )}
 
       {selectedEmber && (
-        <EmberDetailSheet ember={selectedEmber} onDismiss={handleDismiss} />
+        <EmberDetailSheet ember={selectedEmber} onDismiss={handleDismiss} tabBarHeight={TAB_BAR_HEIGHT} />
       )}
       {selectedBlueEmber && (
         <BlueEmberDetailSheet blueEmber={selectedBlueEmber} onDismiss={handleDismiss} />

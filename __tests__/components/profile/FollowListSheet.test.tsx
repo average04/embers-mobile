@@ -11,6 +11,10 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ bottom: 0, top: 0, left: 0, right: 0 }),
 }))
 
+jest.mock('@/components/profile/UserProfileSheet', () => ({
+  UserProfileSheet: () => null,
+}))
+
 jest.mock('@/store/authStore', () => ({
   useAuthStore: jest.fn((selector: any) =>
     selector({ session: { user: { id: 'me' } } })

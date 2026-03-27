@@ -13,6 +13,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { useAuthStore } from '@/store/authStore'
 import { FollowUserRow } from './FollowUserRow'
+import { UserProfileSheet } from './UserProfileSheet'
 
 interface Props {
   visible: boolean
@@ -40,7 +41,7 @@ function SkeletonRow() {
   return <Animated.View style={[styles.skeletonRow, { opacity: anim }]} />
 }
 
-export function FollowListSheet({ visible, onClose, type, count, targetUserId, tabBarHeight: _tabBarHeight = 0 }: Props) {
+export function FollowListSheet({ visible, onClose, type, count, targetUserId, tabBarHeight = 0 }: Props) {
   const insets = useSafeAreaInsets()
   const session = useAuthStore((s) => s.session)
   const queryClient = useQueryClient()
@@ -99,6 +100,8 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
   })
 
   const [myFollowingSet, setMyFollowingSet] = useState<Set<string>>(new Set())
+  const [quickViewUserId, setQuickViewUserId] = useState<string | null>(null)
+  const [quickViewUsername, setQuickViewUsername] = useState('')
 
   useEffect(() => {
     if (myFollowsQuery.data) {
@@ -177,7 +180,10 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
           username={user.username}
           isFollowing={myFollowingSet.has(user.id)}
           onToggle={handleToggle}
-          // onUsernamePress wired in Task 4 after UserProfileSheet is created
+          onUsernamePress={user.id !== ownUserId ? (id) => {
+            setQuickViewUserId(id)
+            setQuickViewUsername(user.username)
+          } : undefined}
         />
         {index < listQuery.data!.length - 1 && <View style={styles.separator} />}
       </React.Fragment>
@@ -194,6 +200,15 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
           {renderList()}
         </ScrollView>
       </View>
+      {quickViewUserId && (
+        <UserProfileSheet
+          visible={!!quickViewUserId}
+          onClose={() => setQuickViewUserId(null)}
+          userId={quickViewUserId}
+          username={quickViewUsername}
+          tabBarHeight={tabBarHeight}
+        />
+      )}
     </Modal>
   )
 }

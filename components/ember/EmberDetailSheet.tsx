@@ -24,6 +24,7 @@ import { daysRemaining, timeAgo } from '@/lib/emberUtils'
 import { formatNumber } from '@/lib/formatNumber'
 import { buildTikTokPlayerUrl } from '@/lib/tiktok'
 import type { MapEmber } from '@/hooks/useMapEmbers'
+import { UserProfileSheet } from '@/components/profile/UserProfileSheet'
 
 
 const EMBER_TYPE_LABELS: Record<string, string> = {
@@ -139,6 +140,7 @@ const REACTIONS: { type: string; icon: (active: boolean) => React.ReactNode }[] 
 interface Props {
   ember: MapEmber
   onDismiss: () => void
+  tabBarHeight: number
 }
 
 type EmberComment = {
@@ -150,11 +152,12 @@ type EmberComment = {
   profiles: { avatar_url: string | null } | null
 }
 
-export function EmberDetailSheet({ ember, onDismiss }: Props) {
+export function EmberDetailSheet({ ember, onDismiss, tabBarHeight }: Props) {
   const { session, profile } = useAuthStore()
   const queryClient = useQueryClient()
   const days = daysRemaining(ember.created_at, ember.relit_at, 30)
   const [muted, setMuted] = useState(false)
+  const [userProfileVisible, setUserProfileVisible] = useState(false)
   const webViewRef = useRef<WebView>(null)
   const hasTiktok = !!(ember.show_tiktok && ember.tiktok_link)
   const tiktokUrl = hasTiktok ? buildTikTokPlayerUrl(ember.tiktok_link!) : null
@@ -593,7 +596,13 @@ export function EmberDetailSheet({ ember, onDismiss }: Props) {
 
             {/* Attribution + controls */}
             <View style={styles.attribution}>
-              <Text style={styles.username}>— {ember.username ?? 'unknown'}</Text>
+              {ember.user_id && ember.user_id !== session?.user.id ? (
+                <TouchableOpacity onPress={() => setUserProfileVisible(true)} activeOpacity={0.7}>
+                  <Text style={styles.username}>— {ember.username ?? 'unknown'}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.username}>— {ember.username ?? 'unknown'}</Text>
+              )}
 
               <View style={styles.controls}>
                 {/* Disc play/pause */}
@@ -889,6 +898,15 @@ export function EmberDetailSheet({ ember, onDismiss }: Props) {
         </View>
       </Modal>
 
+      {ember.user_id && ember.user_id !== session?.user.id && (
+        <UserProfileSheet
+          visible={userProfileVisible}
+          onClose={() => setUserProfileVisible(false)}
+          userId={ember.user_id}
+          username={ember.username ?? ''}
+          tabBarHeight={tabBarHeight}
+        />
+      )}
     </Modal>
   )
 }
