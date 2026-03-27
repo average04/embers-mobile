@@ -211,7 +211,7 @@ export default function UserProfileScreen() {
         {/* Back row */}
         <TouchableOpacity style={styles.backRow} onPress={() => router.back()} activeOpacity={0.7}>
           <Text style={styles.backChevron}>‹</Text>
-          <Text style={styles.backUsername}>Back</Text>
+          <Text style={styles.backUsername}>@{username}</Text>
         </TouchableOpacity>
 
         {/* Hero */}

@@ -91,8 +91,8 @@ describe('UserProfileScreen', () => {
   afterEach(() => jest.clearAllMocks())
 
   it('renders username after profile loads', async () => {
-    const { getByText } = render(<UserProfileScreen />, { wrapper: makeWrapper() })
-    await waitFor(() => expect(getByText('@mika_void')).toBeTruthy())
+    const { getAllByText } = render(<UserProfileScreen />, { wrapper: makeWrapper() })
+    await waitFor(() => expect(getAllByText('@mika_void').length).toBeGreaterThanOrEqual(1))
   })
 
   it('shows embers when embers_hidden is false', async () => {
