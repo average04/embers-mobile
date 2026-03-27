@@ -43,7 +43,7 @@ describe('SettingsSheet', () => {
     const { getByText } = render(<SettingsSheet {...defaultProps} />)
     expect(getByText('Change username')).toBeTruthy()
     expect(getByText('Change password')).toBeTruthy()
-    expect(getByText('Hide my embers from map')).toBeTruthy()
+    expect(getByText('Hide embers from visitors')).toBeTruthy()
     expect(getByText('Sign out')).toBeTruthy()
   })
 
