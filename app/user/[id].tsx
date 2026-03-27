@@ -88,6 +88,7 @@ export default function UserProfileScreen() {
   })
 
   const [isFollowing, setIsFollowing] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   React.useEffect(() => {
     if (isFollowingQuery.data !== undefined) setIsFollowing(isFollowingQuery.data)
   }, [isFollowingQuery.data])
@@ -125,7 +126,8 @@ export default function UserProfileScreen() {
   })
 
   async function handleToggleFollow() {
-    if (!ownUserId || userId === ownUserId) return
+    if (!ownUserId || userId === ownUserId || submitting) return
+    setSubmitting(true)
     const prev = isFollowing
     setIsFollowing(!isFollowing)
 
@@ -138,6 +140,7 @@ export default function UserProfileScreen() {
       error = res.error
     }
 
+    setSubmitting(false)
     if (error) {
       setIsFollowing(prev)
       return
@@ -149,6 +152,8 @@ export default function UserProfileScreen() {
     queryClient.invalidateQueries({ queryKey: ['followerCount', ownUserId] })
     queryClient.invalidateQueries({ queryKey: ['followingCount', ownUserId] })
     queryClient.invalidateQueries({ queryKey: ['myFollows', ownUserId] })
+    queryClient.invalidateQueries({ queryKey: ['followersList', userId] })
+    queryClient.invalidateQueries({ queryKey: ['followingList', userId] })
   }
 
   const profile = profileQuery.data
@@ -245,6 +250,7 @@ export default function UserProfileScreen() {
             <TouchableOpacity
               style={[styles.followBtn, isFollowing && styles.followBtnActive]}
               onPress={handleToggleFollow}
+              disabled={submitting}
               activeOpacity={0.7}
             >
               <Text style={[styles.followBtnText, isFollowing && styles.followBtnTextActive]}>
