@@ -903,7 +903,7 @@ export function EmberDetailSheet({ ember, onDismiss, tabBarHeight }: Props) {
           visible={userProfileVisible}
           onClose={() => setUserProfileVisible(false)}
           userId={ember.user_id}
-          username={ember.username ?? ''}
+          username={ember.username ?? 'unknown'}
           tabBarHeight={tabBarHeight}
         />
       )}

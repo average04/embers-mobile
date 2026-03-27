@@ -202,7 +202,7 @@ export function FollowListSheet({ visible, onClose, type, count, targetUserId, t
       </View>
       {quickViewUserId && (
         <UserProfileSheet
-          visible={!!quickViewUserId}
+          visible={true}
           onClose={() => setQuickViewUserId(null)}
           userId={quickViewUserId}
           username={quickViewUsername}
